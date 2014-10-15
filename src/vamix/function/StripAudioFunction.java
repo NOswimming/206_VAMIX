@@ -129,7 +129,7 @@ public class StripAudioFunction {
 
 		@Override
 		public Void doInBackground() {
-			ProcessBuilder builder = new ProcessBuilder("avconv", "-i",
+			ProcessBuilder builder = new ProcessBuilder("/usr/bin/avconv", "-i",
 					input.getPath(), output.getPath());
 			builder.redirectErrorStream(true);
 			try {
@@ -154,7 +154,6 @@ public class StripAudioFunction {
 		@Override
 		protected void process(List<String> list) {
 			for (String s : list) {
-				System.out.println(s); //TODO: remove this line
 				
 				//Gets the duration of the video file to calculate the total number of frames
 				Pattern three = Pattern.compile("Duration:\\s(\\d{2}):(\\d{2}):(\\d{2})\\.\\d{2}");

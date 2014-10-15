@@ -9,7 +9,7 @@ import vamix.ui.GUI;
  * swing components. Utilises swing worker to ensure a responsive
  * GUI.
  */
-public class GUIBuilder {
+public class VAMIXmain {
 	
 	/**
 	 * Launch the application.

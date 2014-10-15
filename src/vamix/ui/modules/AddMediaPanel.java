@@ -25,6 +25,14 @@ import javax.swing.border.LineBorder;
 
 import vamix.component.ComponentManager;
 
+
+/**
+ * Redundant class
+ * 
+ * @author callum
+ *
+ */
+@Deprecated
 public class AddMediaPanel extends JPanel implements ActionListener {
 
 	private JTextField URL;

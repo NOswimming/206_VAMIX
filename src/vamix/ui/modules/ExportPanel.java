@@ -1,11 +1,17 @@
 package vamix.ui.modules;
 
 import java.awt.BorderLayout;
-
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 
+/**
+ * Redundant class
+ * 
+ * @author callum
+ *
+ */
+@Deprecated
 public class ExportPanel extends JPanel {
 
 	/**

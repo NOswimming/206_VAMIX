@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="src/resources/jna-4.0.0.jar"/>
+	<classpathentry kind="lib" path="src/resources/jna-platform-4.0.0.jar"/>
+	<classpathentry kind="lib" path="src/resources/vlcj-3.0.0.jar"/>
+	<classpathentry kind="lib" path="src/resources/jgoodies-looks-2.6.0.jar"/>
+	<classpathentry kind="lib" path="src/resources/jgoodies-common-1.8.0.jar"/>
+	<classpathentry kind="output" path="src"/>
+</classpath>

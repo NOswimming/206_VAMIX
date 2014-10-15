@@ -26,7 +26,22 @@ public class DrawTextFunction {
 	 * The various variables required to draw the text
 	 */
 	private Video input;
-	private Audio output;
+	private Video output;
+	
+	private static final String BEGINING = "lt";
+	private static final String END = "gt";
+	
+	private String beginingOrEnd = BEGINING;
+	private String duration = "6";
+	private String fontFilePath;
+	private String text;
+	private String outputFileName = "StripAudioTest";
+	private String outputFileExtension = ".avi";
+	private String opacity = "1.0";
+	private String fontColor;
+	private String fontSize;
+	private int textPositionY = 100;
+	private int textPositionX = 50;
 
 	private Worker worker = null;
 
@@ -37,7 +52,7 @@ public class DrawTextFunction {
 	}
 	
 	/**
-	 * Cancel the strip audio
+	 * Cancel the avconv drawtext process
 	 */
 	public void cancelDt() {
 		if (worker != null) {
@@ -47,12 +62,17 @@ public class DrawTextFunction {
 	}
 
 	/**
-	 * Called when the draw text button is pushed, this checks that all
+	 * Called when the draw text button is pushed +" "+ this checks that all
 	 * required fields have been appropriately filled and if so, starts the
 	 * swing worker
 	 */
-	public int canDrawText(String outputName, String outputDirectory,
-			boolean automatic) {
+	public int canDrawText(String outputName, String outputDirectory, String text, String fontColor, String fontSize, String fontFilePath) {
+		
+		this.fontFilePath = fontFilePath;
+		this.text = text;
+		this.fontColor = fontColor;
+		this.fontSize = fontSize;
+		
 		if (worker != null) {
 			return 9;// Need to wait until previous task is complete
 		}
@@ -62,22 +82,18 @@ public class DrawTextFunction {
 		if (outputName.contains(" ")) {
 			return 5;// output contains spaces
 		}
-		if (!outputName.endsWith(".mp3")) {
-			outputName = outputName + ".mp3"; // Append an mp3 extension if none
-												// exists
-		}
 
 		// From here assume output is a valid file and create a new component
 		// (Not saved yet)
 		File f = new File(outputDirectory + Helper.SLASH + outputName);
-		this.output = new Audio(f);
+		this.output = new Video(f);
 
 		// Check file does not already exist
 		if (this.output.getFile().exists()) {
 			return 4;
 		}
 
-		// Get the Video to be stripped from the component manager
+		// Get the Video to draw the text on from the component manager
 		ComponentManager cm = ComponentManager.getInstance();
 		Video video = cm.getVideo();
 
@@ -125,9 +141,12 @@ public class DrawTextFunction {
 
 		@Override
 		public Void doInBackground() {
-			// 
-			ProcessBuilder builder = new ProcessBuilder("avconv", "-i",
-					input.getPath(), output.getPath());
+			// avconv -i <input file> -vf drawtext="draw='<lt/gt>(t,<duration>)': fontfile='<text file>': text='<text>': x=100: y=50: fontsize=<font size>: fontcolor=<font color>@<opacity>" <output file name><output file extension>
+			String inputFile = input.getPath();
+			String command = "/usr/bin/avconv"+" "+"-i "+inputFile+" "+ "-vf" +" "+ "drawtext=\" draw='"+beginingOrEnd+"(t,"+duration+")': fontfile='"+fontFilePath+"': text='"+text+"': x="+textPositionX+": y="+textPositionY+": fontsize="+fontSize+": fontcolor="+fontColor+"@"+opacity+"\""+" "+"-y"+" "+outputFileName+outputFileExtension;
+			ProcessBuilder builder = new ProcessBuilder(command);
+			System.out.println(command);
+			
 			builder.redirectErrorStream(true);
 			try {
 				process = builder.start();
@@ -166,7 +185,7 @@ public class DrawTextFunction {
 				}
 				
 				//Gets the number of frames per second to calculate the total number of frames
-				Pattern two = Pattern.compile("Video:.+\\s(\\d+)\\sfps");
+				Pattern two = Pattern.compile("Stream:.+\\s(\\d+)\\sfps");
 				matcher = two.matcher(s);
 				if(matcher.find()) {
 					int fps = Integer.parseInt(matcher.group(1));
@@ -191,8 +210,10 @@ public class DrawTextFunction {
 				doDone(exitValue);
 				return;
 			}
-			exitValue = process.exitValue();
-			doDone(exitValue);
+			if (process != null) {
+				exitValue = process.exitValue();
+				doDone(exitValue);
+			}
 		}
 	}
 }

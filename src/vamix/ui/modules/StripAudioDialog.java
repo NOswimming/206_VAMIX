@@ -42,7 +42,7 @@ public class StripAudioDialog extends JDialog implements ActionListener {
 	/**
 	 * If the strip audio is finished and waiting for closure
 	 */
-	private boolean finished = false;
+	private boolean finished = true;
 	
 	private int fps = -1;
 	private int durationSeconds = -1;

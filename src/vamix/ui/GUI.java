@@ -23,6 +23,8 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JTextField;
 import javax.swing.JRadioButton;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import java.awt.Component;
 
@@ -40,6 +42,10 @@ import javax.swing.JList;
 import javax.swing.AbstractListModel;
 import javax.swing.JScrollBar;
 
+import com.jgoodies.looks.plastic.PlasticLookAndFeel;
+import com.jgoodies.looks.plastic.PlasticXPLookAndFeel;
+import com.jgoodies.looks.plastic.theme.DarkStar;
+
 import vamix.ui.modules.AddMediaPanel;
 import vamix.ui.modules.EditorPanel;
 import vamix.ui.modules.ExportPanel;
@@ -54,6 +60,14 @@ public class GUI extends JFrame {
 	public GUI() {
 		this.setTitle("VAMIX - Video and Audio Mixer");
 		
+            try {
+            	
+            	PlasticLookAndFeel.setPlasticTheme(new DarkStar());
+				UIManager.setLookAndFeel(new PlasticXPLookAndFeel());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		
 		Border borderBlackLine = BorderFactory.createLineBorder(Color.black);
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -64,20 +78,9 @@ public class GUI extends JFrame {
 		setContentPane(contentPane);
 		contentPane.setLayout(new BorderLayout(0, 0));
 		
-		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		contentPane.add(tabbedPane, BorderLayout.CENTER);
-		
-		// AddMedia panel
-		JPanel tabPanel_AddMedia = new AddMediaPanel();
-		tabbedPane.addTab("Add Media", null, tabPanel_AddMedia, null);
-		
 		/// Editor panel
 		JPanel tabPanel_Editor = new EditorPanel();
-		tabbedPane.addTab("Editor", null, tabPanel_Editor, null);
-		
-		// Export panel
-		JPanel tabPanel_Export = new ExportPanel();
-		tabbedPane.addTab("Export", null, tabPanel_Export, null);
+		contentPane.add(tabPanel_Editor, BorderLayout.CENTER);
 		
 	}
 	
