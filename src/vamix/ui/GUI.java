@@ -12,8 +12,17 @@ import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 import com.jgoodies.looks.plastic.PlasticXPLookAndFeel;
 import com.jgoodies.looks.plastic.theme.DarkStar;
 
-import vamix.ui.components.MainPanel;
-
+/**
+ * Main GUI JFrame for VAMIX. 
+ * It is a singleton class to ensure there is only one at any one time.
+ * Adds a MainPanel when the method setUpGUI method is called, 
+ * which is how it is intended to be used.
+ * 
+ * @see #MainPanel
+ * 
+ * @author Callum Fitt-Simpson
+ *
+ */
 public class GUI extends JFrame {
 
 	private static GUI instance = null;
@@ -28,7 +37,7 @@ public class GUI extends JFrame {
 	}
 
 	/**
-	 * Create the frame.
+	 * Create the frame and sets the size and Look and Feel.
 	 */
 	private GUI() {
 		this.setTitle("VAMIX - Video and Audio Mixer");
@@ -51,11 +60,17 @@ public class GUI extends JFrame {
 
 	}
 
+	/**
+	 * Adds the MainPanel to create the rest of the GUI.
+	 */
 	public void setUpGUI() {
 
 		// / Add the main panel
-		JPanel panel_Main = new MainPanel();
+		MainPanel panel_Main = new MainPanel();
 		contentPane.add(panel_Main, BorderLayout.CENTER);
+		validate();
+		repaint();
+		panel_Main.showWorkingDirectoryDialog();
 
 	}
 

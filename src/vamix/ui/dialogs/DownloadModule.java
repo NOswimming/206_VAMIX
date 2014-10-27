@@ -1,4 +1,4 @@
-package vamix.ui.components;
+package vamix.ui.dialogs;
 
 import java.awt.Dimension;
 
@@ -17,12 +17,25 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.border.CompoundBorder;
 
+import vamix.component.ComponentManager;
 import vamix.function.DownloadFunction;
-import vamix.function.worker.Worker;
+import vamix.function.worker.AbstractWorker;
 
+/**
+ * The GUI component that is added to the DownloadManager for Downloading files.
+ * It is created by the Download Manager.
+ * It calls the DownloadFunction to run the wget process.
+ * 
+ * @see #DownloadManager #DownloadFunction
+ * 
+ * @author Callum Fitt-Simpson
+ */
 public class DownloadModule extends JPanel {
 
 	public Dimension MinimumSize = new Dimension(300, 90);
@@ -30,6 +43,7 @@ public class DownloadModule extends JPanel {
 	public Dimension PreferedSize = new Dimension(300, 90);
 
 	private String name;
+	private String directory;
 
 	private JProgressBar progressBar;
 	private JButton btn_cancelOkay;
@@ -44,8 +58,15 @@ public class DownloadModule extends JPanel {
 	/**
 	 * Create the panel.
 	 */
-	public DownloadModule(String URL, String filename) {
-		name = filename;
+	public DownloadModule(String URL) {
+
+		// Pull the filename from the URL.
+		Pattern pattern = Pattern.compile(".*/([^/]*+)");
+		Matcher matcher = pattern.matcher(URL);
+		if (matcher.find()) {
+			name = matcher.group(1);
+		}
+
 		setMinimumSize(MinimumSize);
 		setMaximumSize(MaximumSize);
 		setPreferredSize(PreferedSize);
@@ -56,7 +77,7 @@ public class DownloadModule extends JPanel {
 		Border compound = new CompoundBorder(empty, blackline);
 		setBorder(new CompoundBorder(compound, empty));
 
-		JLabel lbl_Filename = new JLabel(filename);
+		JLabel lbl_Filename = new JLabel(name);
 		add(lbl_Filename);
 
 		JLabel lbl_URL = new JLabel(URL);
@@ -72,18 +93,29 @@ public class DownloadModule extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (!finished) {
-					download.cancelDl();
+					download.cancel();
 				}
 				remove();
 			}
 		});
-		download = new DownloadFunction(URL, filename, this);
+		
+		File wd = ComponentManager.getInstance().getWorkingDirectory();
+		if (wd != null) directory = wd.getAbsolutePath();
+
+		download = new DownloadFunction(URL, name, directory , this);
+		download.execute();
 	}
 
+	/**
+	 * Updates the progress bar
+	 */
 	public void setProgress(int progress) {
 		progressBar.setValue(progress);
 	}
 
+	/**
+	 * Updates the user that the process is complete
+	 */
 	public void done(int exitValue) {
 		switch (exitValue) {
 		case 1:
@@ -120,7 +152,7 @@ public class DownloadModule extends JPanel {
 			JOptionPane.showMessageDialog(this, name
 					+ " Failed: Protocol Errors");
 			break;
-		case Worker.CANCELED_EXIT_VALUE:
+		case AbstractWorker.CANCELLED_EXIT_VALUE:
 			JOptionPane.showMessageDialog(this,
 					" Downloading has been cancelled.");
 		default:
@@ -130,6 +162,9 @@ public class DownloadModule extends JPanel {
 		btn_cancelOkay.setText("Okay");
 	}
 
+	/**
+	 * Removes the module from the scroll pane in the DownloadManager
+	 */
 	private void remove() {
 		Container c = this.getParent();
 		c.remove(this);

@@ -1,4 +1,4 @@
-package vamix.ui.components;
+package vamix.ui.dialogs;
 
 import java.awt.Toolkit;
 
@@ -7,12 +7,13 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 
 /**
- * Taken from a Stack Overflow thread and modifed. The thread can be found here:
- * http
- * ://stackoverflow.com/questions/8377103/limit-of-characters-in-jtextarea-row
+ *  * A document filter for limited the number of character entered in a text area.
+ * Used by the AddTextDialog GUI component
  * 
- * A document filter
+ * Taken from a Stack Overflow thread and modified. The thread can be found here:
+ * http://stackoverflow.com/questions/8377103/limit-of-characters-in-jtextarea-row
  * 
+ * @see #AddTextDialog
  */
 public class LimitedCharactersDocumentFilter extends DocumentFilter {
 

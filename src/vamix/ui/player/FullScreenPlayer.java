@@ -1,4 +1,4 @@
-package vamix.ui.components;
+package vamix.ui.player;
 
 import javax.swing.JFrame;
 

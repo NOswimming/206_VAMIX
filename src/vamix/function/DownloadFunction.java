@@ -1,11 +1,6 @@
 package vamix.function;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -13,38 +8,43 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 
 import vamix.function.worker.DownloadWorker;
-import vamix.function.worker.Worker;
-import vamix.misc.Helper;
-import vamix.ui.components.DownloadModule;
+import vamix.ui.dialogs.DownloadModule;
 
 /**
- * Handles downloading files, largely taken from Trob525's assignment two code.
+ * The Function class for Downloading files.
+ * 
+ * @see #IFunction
+ * 
+ * @author Callum Fitt-Simpson
+ * 
  */
 public class DownloadFunction implements IFunction {
 
 	private SwingWorker<Void, String> worker;
-	private final String command = "wget";
-	private String arguments;
 	private String url;
 	private String fileName;
 	private String filePath;
 	private String downloadDirectory;
 	private DownloadModule dM;
 
-	public DownloadFunction(String url, String downloadDirectory,
+	/**
+	 * Gets all the variables for the function.
+	 */
+	public DownloadFunction(String url, String fileName, String downloadDirectory,
 			DownloadModule dM) {
 		
 		this.url = url;
 		this.dM = dM;
+		this.fileName = fileName;
 		this.downloadDirectory = downloadDirectory;
+		
+	}
+	
+	/**
+	 * Does any error handling and other checks before starting the Worker class.
+	 */
+	public void execute() {
 
-		// Pull the filename from the URL.
-		Pattern pattern = Pattern.compile(".*/([^/]*+)");
-		Matcher matcher = pattern.matcher(url);
-		if (matcher.find()) {
-			fileName = matcher.group(1);
-			matcher.group(1);
-		}
 		filePath = downloadDirectory + fileName;
 
 		if (new File(this.filePath).exists()) {
@@ -64,15 +64,15 @@ public class DownloadFunction implements IFunction {
 	}
 
 	/**
-	 * Cancel the download
+	 * Cancels the Worker class's process.
 	 */
-	public void cancelDl() {
+	public void cancel() {
 		if (worker != null)
 			worker.cancel(true);
 	}
 
 	/**
-	 * Called when a file is finished downloading
+	 * Tells the GUI the process is complete.
 	 */
 	public void doDone(int exitValue) {
 		dM.done(exitValue);
@@ -80,6 +80,9 @@ public class DownloadFunction implements IFunction {
 		System.gc();
 	}
 
+	/**
+	 *  Processes intermediate results from the Worker and then updates the GUI.
+	 */
 	@Override
 	public void doProcess(String intermediateValue) {
 		Pattern one = Pattern.compile("(\\d{1,3})%");

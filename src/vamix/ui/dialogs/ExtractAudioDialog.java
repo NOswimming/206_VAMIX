@@ -1,4 +1,4 @@
-package vamix.ui.components;
+package vamix.ui.dialogs;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -7,7 +7,6 @@ import java.awt.FlowLayout;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -16,33 +15,37 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
-import vamix.function.DownloadFunction;
+import vamix.component.ComponentManager;
 import vamix.function.ExtractAudioFunction;
-import vamix.function.worker.Worker;
+import vamix.function.worker.AbstractWorker;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 
+/**
+ * The GUI component for Extracting Audio from a Video.
+ * It is shown by pressing the Extract Audio button on the MainPanel.
+ * It calls the ExtractAudioFunction to run the avconv process.
+ * 
+ * @see #MainPanel #ExtractAudioFunction
+ * 
+ * @author Callum Fitt-Simpson
+ */
 public class ExtractAudioDialog extends JDialog implements ActionListener {
 
 	private final JPanel contentPanel = new JPanel();
 	private JTextField textField_Filename;
 	private JTextField textField_Directory;
-	private JButton btn_FileChooser;
 	private JButton btn_StripAudio;
 	private JButton btn_CancelClose;
 	private JProgressBar progressBar;
-
-	private final JFileChooser fc = new JFileChooser();
 
 	private ImportDialog dialog_Import;
 
 	private ExtractAudioFunction stripAudio;
 
-	/**
-	 * If the strip audio is finished and waiting for closure
-	 */
 	private boolean finished = true;
 
 	private int fps = -1;
@@ -79,38 +82,6 @@ public class ExtractAudioDialog extends JDialog implements ActionListener {
 		panel_Filename.add(textField_Filename);
 		textField_Filename.setColumns(20);
 
-		JPanel panel_Directory = new JPanel();
-		panel_Directory.setMinimumSize(dim_PanelsMin);
-		panel_Directory.setMaximumSize(dim_PanelsMax);
-		panel_Directory.setPreferredSize(dim_PanelsPref);
-		panel_Directory.setLayout(new FlowLayout());
-		FlowLayout flowLayout2 = (FlowLayout) panel_Directory.getLayout();
-		flowLayout2.setAlignment(FlowLayout.LEFT);
-		contentPanel.add(panel_Directory);
-
-		JLabel lbl_Directory = new JLabel("Output Directory");
-		panel_Directory.add(lbl_Directory);
-
-		textField_Directory = new JTextField();
-		textField_Directory.setColumns(20);
-		textField_Directory.setEditable(false);
-		panel_Directory.add(textField_Directory);
-
-		btn_FileChooser = new JButton("...");
-		panel_Directory.add(btn_FileChooser);
-
-		btn_FileChooser.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				int returnVal = fc.showOpenDialog(ExtractAudioDialog.this);
-				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					textField_Directory.setText(fc.getSelectedFile()
-							.getAbsolutePath());
-				}
-			}
-		});
-
 		progressBar = new JProgressBar();
 		contentPanel.add(progressBar);
 
@@ -143,23 +114,23 @@ public class ExtractAudioDialog extends JDialog implements ActionListener {
 
 		if (e.getSource() == btn_StripAudio) {
 			String name = textField_Filename.getText();
-			String directory = textField_Directory.getText();
 
-			if (name == null || directory == null || name.equals("")
-					|| directory.equals("")) {
+			if (name == null || name.equals("")) {
 				JOptionPane.showMessageDialog(this,
 						"Please complete the filename and select a directory.");
 				return;
 			}
-			stripAudio = new ExtractAudioFunction(this);
-			int result = stripAudio.canStrip(name, directory, true);
-			canStripExitValue(result);
+			String directory = "/home/";
+			File wd = ComponentManager.getInstance().getWorkingDirectory();
+			if (wd != null) directory = wd.getAbsolutePath();
+			stripAudio = new ExtractAudioFunction(this, name, directory, true);
+			stripAudio.execute();
 		}
 
 		if (e.getSource() == btn_CancelClose) {
 			if (!finished) {
 				System.out.println("cancelSa()");
-				stripAudio.cancelSa();
+				stripAudio.cancel();
 			} else {
 				dispose();
 			}
@@ -167,7 +138,10 @@ public class ExtractAudioDialog extends JDialog implements ActionListener {
 
 	}
 
-	public void canStripExitValue(int exitValue) {
+	/**
+	 * Updates the GUI based on the ExtractAudioFunction output. 
+	 */
+	public void canExtractAudioExitValue(int exitValue) {
 		switch (exitValue) {
 		case 0:
 			// The Strip Audio process has started
@@ -212,14 +186,16 @@ public class ExtractAudioDialog extends JDialog implements ActionListener {
 		}
 	}
 
+	/**
+	 * Updates the user that the process is complete
+	 */
 	public void done(int exitValue) {
 		switch (exitValue) {
 		case 0:
 			// The Strip Audio process has finished correctly
 			JOptionPane.showMessageDialog(this, " Stripping audio complete!");
 			break;
-		case Worker.CANCELED_EXIT_VALUE:
-			// Cancelled
+		case AbstractWorker.CANCELLED_EXIT_VALUE:
 			JOptionPane.showMessageDialog(this,
 					" Stripping audio has been cancelled.");
 			break;
@@ -233,8 +209,6 @@ public class ExtractAudioDialog extends JDialog implements ActionListener {
 
 	/**
 	 * Updates the progress bar
-	 * 
-	 * @param i
 	 */
 	public void setProgress(int i) {
 		progressBar.setValue(i);
@@ -242,8 +216,6 @@ public class ExtractAudioDialog extends JDialog implements ActionListener {
 
 	/**
 	 * Sets the number of frames per second of the video file being stripped
-	 * 
-	 * @param seconds
 	 */
 	public void setFps(int fps) {
 		this.fps = fps;
@@ -252,8 +224,6 @@ public class ExtractAudioDialog extends JDialog implements ActionListener {
 
 	/**
 	 * Sets the duration of the video file being stripped in seconds
-	 * 
-	 * @param seconds
 	 */
 	public void setDurationSeconds(int seconds) {
 		durationSeconds = seconds;

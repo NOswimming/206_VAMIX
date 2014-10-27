@@ -1,4 +1,4 @@
-package vamix.ui.components;
+package vamix.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -12,22 +12,42 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JButton;
 
+import vamix.ui.dialogs.AddTextDialog;
+import vamix.ui.dialogs.DownloadManagerFrame;
+import vamix.ui.dialogs.ExtractAudioDialog;
+import vamix.ui.dialogs.ImportDialog;
+import vamix.ui.dialogs.OverlayAudioDialog;
+import vamix.ui.dialogs.WorkingDirectoryDialog;
+import vamix.ui.player.Player;
+
+/**
+ * Main GUI JPanel for VAMIX. 
+ * Lays out the buttons on one side and the player on the other. 
+ * Also contains all the dialogs that are shown by pressing the buttons.
+ * 
+ * @author Callum Fitt-Simpson
+ *
+ */
 public class MainPanel extends JPanel implements ActionListener {
 
 	DownloadManagerFrame frame_DownloadManager;
 
+	WorkingDirectoryDialog dialog_WorkingDirectory;
 	ImportDialog dialog_Import;
 	AddTextDialog dialog_AddTextStart;
 	AddTextDialog dialog_AddTextEnd;
-	ExtractAudioDialog dialog_StripAudio;
+	ExtractAudioDialog dialog_ExtractAudio;
+	OverlayAudioDialog dialog_OverlayAudio;
 
 	Player player;
 
-	JButton btn_Import; // TODO: Remove this button
+	JButton btn_WorkingDirectory;
+	JButton btn_Import;
 	JButton btn_Download;
 	JButton btn_AddTextStart;
 	JButton btn_AddTextEnd;
-	JButton btn_StripAudio;
+	JButton btn_ExtractAudio;
+	JButton btn_OverlayAudio;
 
 	/**
 	 * Create the panel.
@@ -57,8 +77,13 @@ public class MainPanel extends JPanel implements ActionListener {
 
 		Component verticalGlue = Box.createVerticalGlue();
 		panel_Left.add(verticalGlue);
+		
+		btn_WorkingDirectory = new JButton("Set Working Directory");
+		panel_GridLayout.add(btn_WorkingDirectory);
+		btn_WorkingDirectory.setMinimumSize(btnMin);
+		btn_WorkingDirectory.setMinimumSize(btnPref);
+		btn_WorkingDirectory.addActionListener(this);
 
-		// TODO: Remove this button
 		btn_Import = new JButton("Import Video");
 		panel_GridLayout.add(btn_Import);
 		btn_Import.setMinimumSize(btnMin);
@@ -83,13 +108,19 @@ public class MainPanel extends JPanel implements ActionListener {
 		btn_AddTextEnd.setMinimumSize(btnPref);
 		btn_AddTextEnd.addActionListener(this);
 
-		btn_StripAudio = new JButton("Strip Audio");
-		panel_GridLayout.add(btn_StripAudio);
-		btn_StripAudio.setMinimumSize(btnMin);
-		btn_StripAudio.setMinimumSize(btnPref);
-		btn_StripAudio.addActionListener(this);
+		btn_ExtractAudio = new JButton("Extract Audio");
+		panel_GridLayout.add(btn_ExtractAudio);
+		btn_ExtractAudio.setMinimumSize(btnMin);
+		btn_ExtractAudio.setMinimumSize(btnPref);
+		btn_ExtractAudio.addActionListener(this);
+		
+		btn_OverlayAudio = new JButton("Overlay Audio");
+		//panel_GridLayout.add(btn_OverlayAudio);  //TODO: fix functionality
+		btn_OverlayAudio.setMinimumSize(btnMin);
+		btn_OverlayAudio.setMinimumSize(btnPref);
+		btn_OverlayAudio.addActionListener(this);
 
-		// Right panel for the player and files
+		// Right panel for the player
 
 		panel_Right.setLayout(new BoxLayout(panel_Right, BoxLayout.Y_AXIS));
 
@@ -99,33 +130,60 @@ public class MainPanel extends JPanel implements ActionListener {
 		// Instantiate the function dialogs components
 
 		frame_DownloadManager = new DownloadManagerFrame();
+		dialog_WorkingDirectory = new WorkingDirectoryDialog();
 		dialog_Import = new ImportDialog();
 		dialog_AddTextStart = new AddTextDialog(AddTextDialog.Type.START);
 		dialog_AddTextEnd = new AddTextDialog(AddTextDialog.Type.END);
-		dialog_StripAudio = new ExtractAudioDialog();
+		dialog_ExtractAudio = new ExtractAudioDialog();
+		dialog_OverlayAudio = new OverlayAudioDialog();
 
+	}
+	
+	/**
+	 * Display the WorkingDirectoryDialog at the front to be used first.
+	 */
+	public void showWorkingDirectoryDialog() {
+		dialog_WorkingDirectory.setVisible(true);
+		dialog_WorkingDirectory.setLocationRelativeTo(null);
+		dialog_WorkingDirectory.toFront();
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		
+		if (e.getSource() == btn_WorkingDirectory) {
+			dialog_WorkingDirectory.setLocationRelativeTo(null);
+			dialog_WorkingDirectory.setVisible(true);
+		}
+		
 		if (e.getSource() == btn_Import) {
+			dialog_Import.setLocationRelativeTo(null);
 			dialog_Import.setVisible(true);
 		}
 
 		if (e.getSource() == btn_Download) {
+			frame_DownloadManager.setLocationRelativeTo(null);
 			frame_DownloadManager.setVisible(true);
 		}
 
 		if (e.getSource() == btn_AddTextStart) {
+			dialog_AddTextStart.setLocationRelativeTo(null);
 			dialog_AddTextStart.setVisible(true);
 		}
 
 		if (e.getSource() == btn_AddTextEnd) {
+			dialog_AddTextEnd.setLocationRelativeTo(null);
 			dialog_AddTextEnd.setVisible(true);
 		}
 
-		if (e.getSource() == btn_StripAudio) {
-			dialog_StripAudio.setVisible(true);
+		if (e.getSource() == btn_ExtractAudio) {
+			dialog_ExtractAudio.setLocationRelativeTo(null);
+			dialog_ExtractAudio.setVisible(true);
+		}
+		
+		if (e.getSource() == btn_OverlayAudio) {
+			dialog_OverlayAudio.setLocationRelativeTo(null);
+			dialog_OverlayAudio.setVisible(true);
 		}
 
 	}

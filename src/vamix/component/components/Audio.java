@@ -3,23 +3,24 @@ package vamix.component.components;
 import java.io.File;
 
 /**
- * Represents an audio file object held by the ComponentManager
+ * The class for encapsulating Audio files.
+ * Used by the Component Manager
+ * 
+ * @see #ComponentManager
+ * 
+ * @author Callum Fitt-Simpson
+ * 
  */
 public class Audio {
+	
+	private int ID;
+	private String path;
+	private File file;
 
 	public Audio(File f) {
 		setFile(f);
 		setPath(f.getAbsolutePath());
 	}
-
-	/**********
-	 * FIELDS *
-	 **********/
-
-	/**
-	 * Represents the Unique ID of the Audio object
-	 */
-	private int ID;
 
 	public int getID() {
 		return ID;
@@ -29,23 +30,13 @@ public class Audio {
 		ID = id;
 	}
 
-	/**
-	 * Represents the location of the file being edited
-	 */
-	private String path;
-
 	public String getPath() {
 		return path;
 	}
 
 	public void setPath(String path) {
 		this.path = path;
-	}
-
-	/**
-	 * Represents the audio file in Java
-	 */
-	private File file;
+	}	
 
 	public File getFile() {
 		return file;

@@ -5,12 +5,23 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+/**
+ * A helper function class mainly for checking that files are of the correct type.
+ * Used predominantly by the ComponentManager Class.
+ * 
+ * @see #ComponentManager
+ * 
+ * @author Callum Fitt-Simpson
+ * 
+ */
 public class Helper {
 
-	/**
-	 * Start with shortening some system values
-	 */
+
+	//Shortening some system values
+
 	public static final String NEW_LINE = System.getProperty("line.separator");
 	public static final String SLASH = System.getProperty("file.separator");
 	public static final String HOME = System.getProperty("user.home");
@@ -18,14 +29,53 @@ public class Helper {
 	public static final String DEFAULT_FILE = HOME + SLASH + ".vamix" + SLASH
 			+ "log";
 	public static final String DEFAULT_DIRECTORY = HOME + SLASH + ".vamix";
+	
+	/**
+	 * Checks if a file is a valid video file
+	 * 
+	 * @param f: input file
+	 * @return true if the file is a video file otherwise false
+	 */
+	public static boolean isVideo(File f) {
+		String output = checkType(f);
+		System.out.println(output);
+		Pattern pattern = Pattern.compile(".*video.*");
+		Matcher matcher = pattern.matcher(output.toLowerCase());
+		if (matcher.find()) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	/**
+	 * Checks if a file is a valid audio file
+	 * 
+	 * @param f: input file
+	 * @return true if the file is a audio file otherwise false
+	 */
+	public static boolean isAudio(File f) {
+		String output = checkType(f);
+		System.out.println(output);
+		Pattern pattern = Pattern.compile(".*audio.*");
+		Matcher matcher = pattern.matcher(output.toLowerCase());
+		if (matcher.find()) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	/**
-	 * Uses process builder to check a file type
+	 * Uses process builder to check a file type this is used by the isVideo and isAudio functions.
 	 * 
-	 * @return the mime-type
+	 * @see #Helper#isVideo #Helper#isAudio
+	 * 
+	 * @param f: the file to be checked.
+	 * @returns the result of the mime-type call on the file.
 	 * 
 	 */
-	public static String checkType(File f) {
+	private static String checkType(File f) {
 		ProcessBuilder builder = new ProcessBuilder("file", "--mime-type",
 				f.getPath());
 		builder.redirectErrorStream(true);
@@ -48,9 +98,8 @@ public class Helper {
 	}
 
 	/**
-	 * 
-	 * Turns integer representations of minutes and seconds into a string of
-	 * xx:xx:xx form
+	 * Turns integer representations of minutes and seconds into a string 
+	 * in the form hh:mm:ss 
 	 * 
 	 * @return the time in string format
 	 */

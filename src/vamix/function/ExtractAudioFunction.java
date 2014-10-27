@@ -18,68 +18,71 @@ import vamix.component.components.Audio;
 import vamix.component.components.Video;
 import vamix.function.worker.ExtractWorker;
 import vamix.misc.Helper;
-import vamix.ui.components.DownloadModule;
-import vamix.ui.components.ImportDialog;
-import vamix.ui.components.ExtractAudioDialog;
+import vamix.ui.dialogs.DownloadModule;
+import vamix.ui.dialogs.ExtractAudioDialog;
+import vamix.ui.dialogs.ImportDialog;
 
 /**
- * Strip audio based on the download function
+ * The Function class for Extracting Audio.
+ * 
+ * @see #IFunction
+ * 
+ * @author Callum Fitt-Simpson
+ * 
  */
 public class ExtractAudioFunction implements IFunction {
 
-	/**
-	 * The various variables required to extract
-	 */
 	private Video input;
 	private Audio output;
 
 	private ExtractWorker worker = null;
 
 	private ExtractAudioDialog dialog;
-
-	public ExtractAudioFunction(ExtractAudioDialog stripAudioDialog) {
-		dialog = stripAudioDialog;
-	}
-
-	/**
-	 * Cancel the strip audio
-	 */
-	public void cancelSa() {
-		if (worker != null) {
-			worker.cancel(true);
-			System.out.println("worker.cancel(true)");
-		}
-	}
+	
+	private String outputName;
+	private String outputDirectory;
 
 	/**
-	 * Called when the strip audio button is pushed, this checks that all
-	 * required fields have been appropriately filled and if so, starts the
-	 * stripping of the audio.
+	 * Gets all the variables for the function.
 	 */
-	public int canStrip(String outputName, String outputDirectory,
+	public ExtractAudioFunction(ExtractAudioDialog stripAudioDialog, String outputName, String outputDirectory,
 			boolean automatic) {
+		
+		dialog = stripAudioDialog;
+		
+		this.outputName = outputName;
+		this.outputDirectory = outputDirectory;
+	}
+	
+	/**
+	 * Does any error handling and other checks before starting the Worker class.
+	 */
+	public void execute() {
 		if (worker != null) {
-			return 9;// Need to wait until previous task is complete
+			dialog.canExtractAudioExitValue(9);// Need to wait until previous task is complete
+			return;
 		}
 		if (outputDirectory == null) {
-			return 2;// null output
+			dialog.canExtractAudioExitValue(2);// null output
+			return;
 		}
 		if (outputName.contains(" ")) {
-			return 5;// output contains spaces
+			dialog.canExtractAudioExitValue(5);// output contains spaces
+			return;
 		}
 		if (!outputName.endsWith(".mp3")) {
 			outputName = outputName + ".mp3"; // Append an mp3 extension if none
-												// exists
+			return;									// exists
 		}
 
 		// From here assume output is a valid file and create a new component
-		// (Not saved yet)
 		File f = new File(outputDirectory + Helper.SLASH + outputName);
 		this.output = new Audio(f);
 
 		// Check file does not already exist
 		if (this.output.getFile().exists()) {
-			return 4;
+			dialog.canExtractAudioExitValue(4);
+			return;
 		}
 
 		// Get the Video to be stripped from the component manager
@@ -87,26 +90,29 @@ public class ExtractAudioFunction implements IFunction {
 		Video video = cm.getVideo();
 
 		if (video == null || video.getFile() == null) {
-			return 10; // There isn't a valid video file to extract the audio
-						// from
+			dialog.canExtractAudioExitValue(10); // There isn't a valid video file to extract the audio
+			return;			// from
 		} else {
 			input = video;
 		}
 
-		// Check the input file is valid
-		/*
-		 * if (!Helper.checkType(input.getFile()).equals("audio/mpeg")) { //
-		 * TODO: Update type to be movie type return 7; }
-		 */
-
-		// All appears to be in order
-
 		worker = new ExtractWorker(this, input.getPath(), output.getPath());
-		worker.execute();
-		// TODO: Update GUI the process has started
-		return 0;
+		worker.execute();	
 	}
 
+	/**
+	 * Cancels the Worker class's process.
+	 */
+	public void cancel() {
+		if (worker != null) {
+			worker.cancel(true);
+			System.out.println("worker.cancel(true)");
+		}
+	}
+
+	/**
+	 *  Processes intermediate results from the Worker and then updates the GUI.
+	 */
 	@Override
 	public void doProcess(String intermediateValue) {
 		// Gets the duration of the video file to calculate the total
@@ -142,9 +148,11 @@ public class ExtractAudioFunction implements IFunction {
 
 	}
 
+	/**
+	 * Tells the GUI the process is complete.
+	 */
 	@Override
 	public void doDone(int exitValue) {
-		// TODO: Update user the process is complete
 		worker = null;
 		System.gc();
 		dialog.done(exitValue);

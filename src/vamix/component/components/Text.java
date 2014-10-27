@@ -1,28 +1,21 @@
 package vamix.component.components;
 
+import java.awt.Font;
+
 /**
- * Represents a text overlay on the Video
+ * The class for encapsulating Text files.
+ * Used by the Component Manager
+ * 
+ * @see #ComponentManager
+ * 
+ * @author Callum Fitt-Simpson
+ * 
  */
 public class Text {
 
-	/**********
-	 * FIELDS *
-	 **********/
 
-	/**
-	 * An option field, used if text is to be imported from a file. Primarily
-	 * used for drag and drop functionality.
-	 */
 	private String fileLoc;
-
-	/**
-	 * The text that is to be displayed
-	 */
 	private String text;
-
-	/**
-	 * The font the text is to be displayed in
-	 */
-	// private Font font;
+	private Font font;
 
 }

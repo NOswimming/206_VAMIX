@@ -1,4 +1,4 @@
-package vamix.ui.components;
+package vamix.ui.dialogs;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -12,6 +12,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.GridLayout;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -30,26 +32,27 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.PlainDocument;
-
-import vamix.function.DrawTextFunction;
-import vamix.function.ExtractAudioFunction;
-import vamix.misc.Helper;
-
-import javax.swing.JTextPane;
 import javax.swing.JTextArea;
 import javax.swing.JLabel;
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
-
-import java.awt.GridLayout;
-
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.SwingConstants;
 
+import vamix.component.ComponentManager;
+import vamix.function.DrawTextFunction;
+
+
 /**
- * Adds text to the start of the video,
+ * The GUI component for Adding text to a video.
+ * It is shown by pressing the Add text to start or Add text to end buttons on the MainPanel.
+ * It calls the AddTextFunction to run the avconv process.
+ * 
+ * @see #MainPanel #AddTextFunction
+ * 
+ * @author Callum Fitt-Simpson
  */
 public class AddTextDialog extends JDialog implements ActionListener,
 		ChangeListener, ItemListener {
@@ -60,7 +63,7 @@ public class AddTextDialog extends JDialog implements ActionListener,
 	private JButton btn_AddText;
 	private JButton btn_CancelClose;
 
-	final JFileChooser font_select = new JFileChooser();
+	private final JFileChooser font_select = new JFileChooser();
 	private JTextField fontSelectText;
 	private JTextArea textArea;
 	private JProgressBar progressBar;
@@ -92,17 +95,24 @@ public class AddTextDialog extends JDialog implements ActionListener,
 	private DrawTextFunction drawText;
 
 	private int durationFrames;
-	private int durationSeconds;
-	private int fps;
+	private int durationSeconds = 60;
+	private int fps = 24;
 
-	private String outputName = "drawTextTest";
+	private String outputName = "drawTextTest.avi";
 	private String outputDirectory = "";
+	private String beginingOrEnd;
 
 	public enum Type {
 		START, END
 	};
 
 	public AddTextDialog(Type type) {
+		
+		if (type == Type.END) {
+			beginingOrEnd = DrawTextFunction.END;
+		} else {
+			beginingOrEnd = DrawTextFunction.BEGINING;
+		}
 
 		setTitle("Add Text to the " + type.toString().toLowerCase()
 				+ " of the Video");
@@ -131,6 +141,7 @@ public class AddTextDialog extends JDialog implements ActionListener,
 		textArea.setMinimumSize(new Dimension(600, 300));
 		textArea.setMaximumSize(new Dimension(2000, 1000));
 		textArea.setPreferredSize(new Dimension(600, 300));
+		textArea.setText("OVERLAYED TEXT");
 
 		contentPanel.add(textArea);
 
@@ -236,7 +247,6 @@ public class AddTextDialog extends JDialog implements ActionListener,
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
 
 		if (e.getSource() == btn_AddText) {
 			String text = textArea.getText();
@@ -246,11 +256,14 @@ public class AddTextDialog extends JDialog implements ActionListener,
 						"Please enter some text to overlay.");
 				return;
 			}
-			drawText = new DrawTextFunction(this);
-			int result = drawText.canDrawText(outputName, outputDirectory,
+			File wd = ComponentManager.getInstance().getWorkingDirectory();
+			if (wd != null) {
+				outputDirectory = wd.getAbsolutePath();
+			}
+			drawText = new DrawTextFunction(this,beginingOrEnd,outputName, outputDirectory,
 					text, toHexString(selectedColor), "" + fontSize,
 					fontFile.getAbsolutePath());
-			canDrawTextExitValue(result);
+			drawText.execute();
 		}
 
 		if (e.getSource() == btn_FileChooser) {
@@ -267,13 +280,10 @@ public class AddTextDialog extends JDialog implements ActionListener,
 								.registerFont(font);
 						font = font.deriveFont((float) fontSize);
 					} catch (FileNotFoundException e1) {
-						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					} catch (FontFormatException e1) {
-						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					} catch (IOException e1) {
-						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
 				}
@@ -290,8 +300,7 @@ public class AddTextDialog extends JDialog implements ActionListener,
 
 		if (e.getSource() == btn_CancelClose) {
 			if (!finished) {
-				System.out.println("cancelAt()");
-				drawText.cancelDt();
+				drawText.cancel();
 			} else {
 				dispose();
 			}
@@ -320,6 +329,9 @@ public class AddTextDialog extends JDialog implements ActionListener,
 
 	}
 
+	/**
+	 * Updates the GUI based on the DrawTextFunction output. 
+	 */
 	public void canDrawTextExitValue(int exitValue) {
 		switch (exitValue) {
 		case 0:
@@ -365,6 +377,9 @@ public class AddTextDialog extends JDialog implements ActionListener,
 		}
 	}
 
+	/**
+	 * Updates the user that the process is complete
+	 */
 	public void done(int exitValue) {
 		switch (exitValue) {
 		case 0:
@@ -386,8 +401,6 @@ public class AddTextDialog extends JDialog implements ActionListener,
 
 	/**
 	 * Updates the progress bar
-	 * 
-	 * @param i
 	 */
 	public void setProgress(int i) {
 		progressBar.setValue(i);
@@ -395,8 +408,6 @@ public class AddTextDialog extends JDialog implements ActionListener,
 
 	/**
 	 * Sets the number of frames per second of the video file being stripped
-	 * 
-	 * @param seconds
 	 */
 	public void setFps(int fps) {
 		this.fps = fps;
@@ -405,8 +416,6 @@ public class AddTextDialog extends JDialog implements ActionListener,
 
 	/**
 	 * Sets the duration of the video file being stripped in seconds
-	 * 
-	 * @param seconds
 	 */
 	public void setDurationSeconds(int seconds) {
 		durationSeconds = seconds;

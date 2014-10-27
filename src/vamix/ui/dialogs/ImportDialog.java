@@ -1,4 +1,4 @@
-package vamix.ui.components;
+package vamix.ui.dialogs;
 
 import java.awt.event.ActionListener;
 
@@ -25,6 +25,15 @@ import javax.swing.border.LineBorder;
 
 import vamix.component.ComponentManager;
 
+/**
+ * The GUI component for Importing files to play with the player.
+ * It is shown by pressing the Import button on the MainPanel or by pressing the + button on the player.
+ * It uses the ComponentManger class to check the files are valid audio or video files before importing them.
+ * 
+ * @see #MainPanel #Player #ComponentManger
+ * 
+ * @author Callum Fitt-Simpson
+ */
 public class ImportDialog extends JDialog implements ActionListener {
 
 	JTextField textField_FileChooser;
@@ -33,8 +42,11 @@ public class ImportDialog extends JDialog implements ActionListener {
 
 	List<ActionListener> confirmListeners = new LinkedList<ActionListener>();
 
-	private final JFileChooser fc = new JFileChooser();
+	private final JFileChooser fileChooser = new JFileChooser();
 
+	/**
+	 * Set up the dialog.
+	 */
 	public ImportDialog() {
 		setTitle("Import File");
 
@@ -44,7 +56,7 @@ public class ImportDialog extends JDialog implements ActionListener {
 		contentPanel.setBorder(new LineBorder(new Color(0, 0, 0)));
 		contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
 
-		JLabel lbl_Import = new JLabel("Import Video from File");
+		JLabel lbl_Import = new JLabel("Import a Video or Audio File");
 		lbl_Import.setFont(new Font("Tahoma", Font.PLAIN, 16));
 		contentPanel.add(lbl_Import);
 
@@ -77,24 +89,18 @@ public class ImportDialog extends JDialog implements ActionListener {
 		pack();
 	}
 
-	private void setVideoExitValue(int exitValue) {
-		switch (exitValue) {
-		case 0:
+	/**
+	 * Update the user on whether or not importing the file was successful.
+	 */
+	private void importExitValue(boolean exitValue) {
+		if (exitValue) {
 			JOptionPane.showMessageDialog(null,
-					"Video file imported successfully.");
+					"File imported successfully.");
 			this.setVisible(false);
 			updateConfirmListeners();
-			break;
-		case 1:
+		} else {
 			JOptionPane.showMessageDialog(null,
-					"No directory selected.\n Please select a valid file.");
-			break;
-		case 2:
-			JOptionPane.showMessageDialog(null,
-					"Invalid file selected.\n Please select a valid file.");
-			break;
-		default:
-			break;
+					"Invalid file selected.\n Not a video or audio file.\n Please select a valid file.");
 		}
 
 	}
@@ -103,9 +109,10 @@ public class ImportDialog extends JDialog implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 
 		if (e.getSource() == button_FileChooser) {
-			int returnVal = fc.showOpenDialog(null);
+			fileChooser.setCurrentDirectory(ComponentManager.getInstance().getWorkingDirectory());
+			int returnVal = fileChooser.showOpenDialog(null);
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
-				textField_FileChooser.setText(fc.getSelectedFile()
+				textField_FileChooser.setText(fileChooser.getSelectedFile()
 						.getAbsolutePath());
 			}
 		}
@@ -115,18 +122,23 @@ public class ImportDialog extends JDialog implements ActionListener {
 				JOptionPane.showMessageDialog(null,
 						"Please select a video file to import.");
 			} else {
-				int result = ComponentManager.getInstance().setVideo(
-						textField_FileChooser.getText());
-				setVideoExitValue(result);
+				boolean result = ComponentManager.getInstance().importFile(textField_FileChooser.getText());
+				importExitValue(result);
 			}
 		}
 
 	}
 
+	/**
+	 * For updating the Player when importing is complete.
+	 */
 	public void addConfirmListener(ActionListener listener) {
 		confirmListeners.add(listener);
 	}
 
+	/**
+	 * For updating the Player when importing is complete.
+	 */
 	public void updateConfirmListeners() {
 		ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
 				"confirm");

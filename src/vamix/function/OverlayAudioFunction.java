@@ -1,108 +1,97 @@
 package vamix.function;
 
+
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import vamix.component.ComponentManager;
+import vamix.component.components.Audio;
 import vamix.component.components.Video;
-import vamix.function.worker.DrawTextWorker;
+import vamix.function.worker.OverlayWorker;
 import vamix.misc.Helper;
-import vamix.ui.dialogs.AddTextDialog;
+import vamix.ui.dialogs.OverlayAudioDialog;
 
 /**
- * The Function class for Drawing Text on video files.
+ * The Function class for Overlaying Audio.
  * 
  * @see #IFunction
  * 
  * @author Callum Fitt-Simpson
  * 
  */
-public class DrawTextFunction implements IFunction {
+public class OverlayAudioFunction implements IFunction {
 
 	private Video input;
-	private Video output;
+	private Audio output;
 
-	public static final String BEGINING = "lt";
-	public static final String END = "gt";
+	private OverlayWorker worker = null;
 
-	private String beginingOrEnd;
-	private String fontFilePath;
-	private String text;
-	private String fontColor;
-	private String fontSize;
+	private OverlayAudioDialog dialog;
+	
 	private String outputName;
 	private String outputDirectory;
-	
-	private String duration = "6";
-	private String outputFileName = "StripAudioTest";
-	private String outputFileExtension = ".avi";
-	private String opacity = "1.0";
-	private String textPositionY = "100";
-	private String textPositionX = "50";
-	
-
-	private DrawTextWorker worker = null;
-
-	private AddTextDialog dialog;
-	
+	private String audioFile;
 
 	/**
 	 * Gets all the variables for the function.
 	 */
-	public DrawTextFunction(AddTextDialog dialog, String beginingOrEnd, String outputName, String outputDirectory,
-			String text, String fontColor, String fontSize, String fontFilePath) {
+	public OverlayAudioFunction(OverlayAudioDialog stripAudioDialog, String outputName, String outputDirectory,
+			String audioFile) {
 		
-		this.dialog = dialog;
-		this.beginingOrEnd = beginingOrEnd;
+		dialog = stripAudioDialog;
+		
 		this.outputName = outputName;
 		this.outputDirectory = outputDirectory;
-		this.text = text;
-		this.fontColor = fontColor;
-		this.fontSize = fontSize;
-		this.fontFilePath = fontFilePath;
-		
+		this.audioFile = audioFile;
 	}
 	
 	/**
 	 * Does any error handling and other checks before starting the Worker class.
 	 */
 	public void execute() {
-
 		if (worker != null) {
-			dialog.canDrawTextExitValue(9);// Need to wait until previous task is complete
+			dialog.exitValue(9);// Need to wait until previous task is complete
 			return;
 		}
 		if (outputDirectory == null) {
-			dialog.canDrawTextExitValue(2);// null output
+			dialog.exitValue(2);// null output
 			return;
 		}
 		if (outputName.contains(" ")) {
-			dialog.canDrawTextExitValue(5);// output contains spaces
+			dialog.exitValue(5);// output contains spaces
 			return;
+		}
+		if (!outputName.endsWith(".mp4")) {
+			outputName = outputName + ".mp4"; // Append an mp4 extension if none
+			return;									// exists
 		}
 
 		// From here assume output is a valid file and create a new component
 		File f = new File(outputDirectory + Helper.SLASH + outputName);
-		this.output = new Video(f);
+		this.output = new Audio(f);
 
-		// Get the Video to draw the text on from the component manager
+		// Check file does not already exist
+		if (this.output.getFile().exists()) {
+			dialog.exitValue(4);
+			return;
+		}
+
+		// Get the Video to be overlayed from the component manager
 		ComponentManager cm = ComponentManager.getInstance();
 		Video video = cm.getVideo();
 
 		if (video == null || video.getFile() == null) {
-			dialog.canDrawTextExitValue(10); // There isn't a valid video file to extract the audio
-			return;		// from
+			dialog.exitValue(10); // There isn't a valid video file to extract the audio
+			return;			// from
 		} else {
 			input = video;
 		}
 
-		worker = new DrawTextWorker(this, input.getPath(), output.getPath(), beginingOrEnd, duration, this.fontFilePath, this.text, textPositionX, 
-				textPositionY, this.fontSize, this.fontColor, opacity);
-		worker.execute();
-		dialog.canDrawTextExitValue(0);
+		worker = new OverlayWorker(this, input.getPath(), output.getPath(), audioFile);
+		worker.execute();	
 	}
-	
+
 	/**
 	 * Cancels the Worker class's process.
 	 */
@@ -112,7 +101,7 @@ public class DrawTextFunction implements IFunction {
 			System.out.println("worker.cancel(true)");
 		}
 	}
-	
+
 	/**
 	 *  Processes intermediate results from the Worker and then updates the GUI.
 	 */
@@ -135,7 +124,7 @@ public class DrawTextFunction implements IFunction {
 
 		// Gets the number of frames per second to calculate the total
 		// number of frames
-		Pattern two = Pattern.compile("Stream:.+\\s(\\d+)\\sfps");
+		Pattern two = Pattern.compile("Video:.+\\s(\\d+)\\sfps");
 		matcher = two.matcher(intermediateValue);
 		if (matcher.find()) {
 			int fps = Integer.parseInt(matcher.group(1));
@@ -149,7 +138,7 @@ public class DrawTextFunction implements IFunction {
 			int frame = Integer.parseInt(matcher.group(1));
 			dialog.setProgress(frame);
 		}
-		
+
 	}
 
 	/**
@@ -160,8 +149,7 @@ public class DrawTextFunction implements IFunction {
 		worker = null;
 		System.gc();
 		dialog.done(exitValue);
+
 	}
 
-	
-	
 }

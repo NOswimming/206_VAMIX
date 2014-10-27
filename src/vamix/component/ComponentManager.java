@@ -1,7 +1,6 @@
 package vamix.component;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -11,19 +10,43 @@ import vamix.component.components.Video;
 import vamix.misc.Helper;
 
 /**
- * A singleton, holds references to each of the current components and handles
- * creation of components.
+ * The class for managing important files.
+ * It is a singleton class so that the important files can be accessed easily from other classes,
+ * and so that there aren't any conflicts in which files to use.
+ * 
+ * Manages the file being played by the player.
+ * Manages the current working directory.
+ * Manages any imported files.
+ * Uses the Helper class to check imported files are video or audio files.
+ * 
+ * @see #Helper
+ * 
+ * @author Callum Fitt-Simpson
+ * 
  */
 public class ComponentManager {
 
 	private static ComponentManager instance;
 
+	private int ID;
+	private List<Audio> audioList;
+	private List<Text> textList;
+	private Video videoInstance;
+	private File playFile;
+	private File workingDirectory;
+
+	/**
+	 * @return the Component Manager
+	 */
 	public static ComponentManager getInstance() {
 		if (instance == null)
 			instance = new ComponentManager();
 		return instance;
 	}
 
+	/**
+	 * private constructor to prevent instantiation.
+	 */
 	private ComponentManager() {
 		ID = 0;
 		audioList = new LinkedList<Audio>();
@@ -31,91 +54,80 @@ public class ComponentManager {
 	}
 
 	/**
-	 * ID for uniquely identifying the components
+	 * @return an ID for uniquely identifying a component
 	 */
-	private int ID;
-
 	private int getID() {
 		ID++;
 		return ID;
 	}
 
-	/*********
-	 * LISTS *
-	 *********/
-
 	/**
-	 * List of audio files on the current video file
+	 * Attempts to import a file. Checks if it is a valid video or audio file.
+	 * If it is valid then sets it as the next file to be played by the player.
+	 * 
+	 * @param file to be imported
+	 * @return true if the file was successfully imported, otherwise false.
 	 */
-	private List<Audio> audioList;
+	public boolean importFile(String file) {
+
+		File f = new File(file);
+
+		if (!f.isFile()) {
+			return false; // File is invalid
+		}
+
+		if (Helper.isVideo(f)) {
+			setPlayFile(f);
+			setVideo(f);
+			return true;
+		}
+
+		if (Helper.isAudio(f)) {
+			setPlayFile(f);
+			addAudio(f);
+			return true;
+		}
+
+		return false;
+	}
 
 	/**
-	 * List of text components on the current video file
+	 * Sets the video or audio file to be played by the player.
 	 */
-	private List<Text> textList;
-
-	/*************
-	 * END LISTS *
-	 *************/
-
-	/*************
-	 * VIDEO *
-	 *************/
-	private Video videoInstance;
+	private void setPlayFile(File f) {
+		playFile = f; // Set the file to be played with the player
+	}
 
 	/**
-	 * Returns the video instance, returns null if there is no video
+	 * Gets the video or audio file to be played by the player.
+	 */
+	public File getPlayFile() {
+		return playFile;
+	}
+
+	/**
+	 * Sets the video file for functions.
+	 */
+	private void setVideo(File f) {
+		videoInstance = new Video(f);// Set the video to be edited
+	}
+
+	/**
+	 * Gets the video file for functions.
 	 */
 	public Video getVideo() {
 		return videoInstance;
 	}
 
 	/**
+	 * Check the audio file isn't already managed by the Component Manager If it
+	 * is then return the ID of the corresponding component
 	 * 
-	 * Tries to set the video file for editing, returns 0 if successful
-	 * otherwise returns an error code.
-	 * 
-	 * @param dir
-	 *            the location of the file
-	 * @return the success code
+	 * @param f
+	 * @return
 	 */
-	public int setVideo(String dir) {
-		if (dir.equals("")) {// No directory selected
-			return 1;
-		}
-		File f = new File(dir);
-		if (!f.isFile()) {
-			return 2;// File is invalid
-		}
-		// TODO: Finish me
-		System.out.println(Helper.checkType(f));
-		videoInstance = new Video(f);// Set the video to be edited
-		return 0;
-	}
+	private int addAudio(File f) {
 
-	/*************
-	 * AUDIO *
-	 *************/
-
-	/**
-	 * @param dir
-	 *            : the absolute path to the file.
-	 * @throws FileNotFoundException
-	 * @returns the ID of the Audio component.
-	 */
-	public int addAudio(String dir) throws FileNotFoundException {
-		if (dir.equals("")) {
-			throw new IllegalArgumentException(); // No directory selected
-		}
-		File f = new File(dir);
-		if (!f.isFile()) {
-			throw new FileNotFoundException(); // Not a valid file
-		}
-		// TODO: Finish me
-		System.out.println(Helper.checkType(f));
-
-		// Check the audio file isn't already managed by the Component Manager
-		// If it is then return the ID of the corresponding component
 		for (Audio a : audioList) {
 			if (a.getFile() == f)
 				return a.getID();
@@ -130,7 +142,6 @@ public class ComponentManager {
 	}
 
 	/**
-	 * 
 	 * @param ID
 	 *            : the unique ID of the Audio component
 	 * @returns the Audio component
@@ -141,6 +152,18 @@ public class ComponentManager {
 				return a;
 		}
 		return null;
+	}
+
+	public File getWorkingDirectory() {
+		return workingDirectory;
+	}
+
+	public void setWorkingDirectory(File newWorkingDirectory) {
+		if (!newWorkingDirectory.isDirectory())
+			workingDirectory = newWorkingDirectory.getParentFile();
+		else
+			workingDirectory = newWorkingDirectory;
+
 	}
 
 }

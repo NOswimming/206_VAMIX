@@ -8,26 +8,28 @@ import java.io.InputStreamReader;
 import vamix.function.IFunction;
 
 /**
- * The swing worker for the ExtractAudio functionality.
- * It updates the ExtractAudioFunction class through the methods in the AbstractWorker class that it inherits.
+ * The swing worker for the OverlayText functionality.
+ * It updates the OverlayTextFunction class through the methods in the AbstractWorker class that it inherits.
  * 
- * @see #ExtractAudioFunction #AbstractWorker
+ * @see #OverlayTextFunction #AbstractWorker
  * 
  * @author Callum Fitt-Simpson
  * 
  */
-public class ExtractWorker extends AbstractWorker {
+public class OverlayWorker extends AbstractWorker {
 	
 	private String inputFilepath;
 	private String outputFilepath;
+	private String audioFilepath;
 	
 	/**
 	 * Gets all the variables for the process to run.
 	 */
-	public ExtractWorker (IFunction function, String inputFilepath, String outputFilepath) {
+	public OverlayWorker (IFunction function, String inputFilepath, String outputFilepath, String audioFile) {
 		this.function = function;
 		this.inputFilepath = inputFilepath;
 		this.outputFilepath = outputFilepath;
+		this.audioFilepath = audioFile;
 	}
 
 	/**
@@ -36,7 +38,8 @@ public class ExtractWorker extends AbstractWorker {
 	@Override
 	public Void doInBackground() {
 		ProcessBuilder builder = new ProcessBuilder("/usr/bin/avconv",
-				"-i", inputFilepath, outputFilepath);
+				"-i", inputFilepath, "-i", audioFilepath, "-filter_complex", "amix=inputs=2", 
+				"-strict", "experimental", "-f" ,"mp4", outputFilepath);
 		
 		builder.redirectErrorStream(true);
 		try {

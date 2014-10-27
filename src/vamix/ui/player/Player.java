@@ -1,8 +1,9 @@
-package vamix.ui.components;
+package vamix.ui.player;
 
 import vamix.component.ComponentManager;
 import vamix.component.components.Video;
 import vamix.ui.GUI;
+import vamix.ui.dialogs.ImportDialog;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -13,6 +14,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -59,21 +61,21 @@ public class Player extends JPanel implements ActionListener, ChangeListener,
 
 	// Icons for all the buttons
 	private ImageIcon playIcon = new ImageIcon(
-			GUI.class.getResource("/vamix/ui/icons/PlayButtonIcon.png"));
+			GUI.class.getResource("/vamix/ui/player/icons/PlayButtonIcon.png"));
 	private ImageIcon pauseIcon = new ImageIcon(
-			GUI.class.getResource("/vamix/ui/icons/PauseButtonIcon.png"));
+			GUI.class.getResource("/vamix/ui/player/icons/PauseButtonIcon.png"));
 	private ImageIcon stopIcon = new ImageIcon(
-			GUI.class.getResource("/vamix/ui/icons/StopButtonIcon.png"));
+			GUI.class.getResource("/vamix/ui/player/icons/StopButtonIcon.png"));
 	private ImageIcon fastForwardIcon = new ImageIcon(
-			GUI.class.getResource("/vamix/ui/icons/FastForwardButtonIcon.png"));
+			GUI.class.getResource("/vamix/ui/player/icons/FastForwardButtonIcon.png"));
 	private ImageIcon rewindIcon = new ImageIcon(
-			GUI.class.getResource("/vamix/ui/icons/RewindButtonIcon.png"));
+			GUI.class.getResource("/vamix/ui/player/icons/RewindButtonIcon.png"));
 	private ImageIcon mutedIcon = new ImageIcon(
-			GUI.class.getResource("/vamix/ui/icons/MutedButtonIcon.png"));
+			GUI.class.getResource("/vamix/ui/player/icons/MutedButtonIcon.png"));
 	private ImageIcon unmutedIcon = new ImageIcon(
-			GUI.class.getResource("/vamix/ui/icons/UnmutedButtonIcon.png"));
+			GUI.class.getResource("/vamix/ui/player/icons/UnmutedButtonIcon.png"));
 	private ImageIcon addIcon = new ImageIcon(
-			GUI.class.getResource("/vamix/ui/icons/AddButtonIcon.png"));
+			GUI.class.getResource("/vamix/ui/player/icons/AddButtonIcon.png"));
 
 	private ImportDialog dialog_Import;
 
@@ -242,8 +244,8 @@ public class Player extends JPanel implements ActionListener, ChangeListener,
 
 		if (e.getSource() == btn_Add) {
 			ComponentManager cm = ComponentManager.getInstance();
-			Video video = cm.getVideo();
-			if (video == null || video.getFile() == null) {
+			File file = cm.getPlayFile();
+			if (file == null || file.getAbsolutePath() == null) {
 				int response = JOptionPane
 						.showConfirmDialog(this,
 								"No video file to play.\n Would you like to import one?");
@@ -253,7 +255,7 @@ public class Player extends JPanel implements ActionListener, ChangeListener,
 				}
 
 			} else {
-				String absolutePath = video.getFile().getAbsolutePath();
+				String absolutePath = file.getAbsolutePath();
 				mediaPlayerComponent.getMediaPlayer().startMedia(absolutePath);
 				setProgressBarMaximum(mediaPlayerComponent.getMediaPlayer()
 						.getLength());
@@ -264,9 +266,9 @@ public class Player extends JPanel implements ActionListener, ChangeListener,
 
 		if (e.getSource() == dialog_Import) {
 			ComponentManager cm = ComponentManager.getInstance();
-			Video video = cm.getVideo();
+			File file = cm.getPlayFile();
 
-			String absolutePath = video.getFile().getAbsolutePath();
+			String absolutePath = file.getAbsolutePath();
 			mediaPlayerComponent.getMediaPlayer().startMedia(absolutePath);
 			setProgressBarMaximum(mediaPlayerComponent.getMediaPlayer()
 					.getLength());

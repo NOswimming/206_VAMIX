@@ -1,4 +1,4 @@
-package vamix.ui.components;
+package vamix.ui.dialogs;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -10,10 +10,8 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -25,40 +23,22 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.SwingConstants;
-import javax.swing.border.LineBorder;
-
-import vamix.component.ComponentManager;
-
-import vamix.component.ComponentManager;
 import java.awt.GridLayout;
 
+/**
+ * The GUI component for Downloading files.
+ * It is shown by pressing the Download Manager button on the MainPanel.
+ * It adds DownloadModule components to the scroll pane, 
+ * which in turn call the DownloadFunction to run the wget process.
+ * 
+ * @see #MainPanel #DownloadModule #DownloadFunction
+ * 
+ * @author Callum Fitt-Simpson
+ */
 public class DownloadManagerFrame extends JFrame implements ActionListener {
 
 	private JTextField textField_URL;
 	private JTextField textField_fileName;
-	private JTextField textField_FileChooser;
-	private final JFileChooser fc = new JFileChooser();
 
 	private JRadioButton openSource;
 
@@ -77,7 +57,7 @@ public class DownloadManagerFrame extends JFrame implements ActionListener {
 
 		contentPane.setLayout(new BorderLayout(0, 0));
 
-		// Scrollable pane for displaying the downloads
+		// Scroll pane for displaying the downloads
 
 		panel_DisplayDownload = new JPanel();
 		panel_DisplayDownload.setLayout(new BoxLayout(panel_DisplayDownload,
@@ -123,24 +103,8 @@ public class DownloadManagerFrame extends JFrame implements ActionListener {
 		panel_URL.add(lbl_URL);
 
 		textField_URL = new JTextField();
-		textField_URL.setColumns(20);
+		textField_URL.setColumns(30);
 		panel_URL.add(textField_URL);
-
-		JPanel panel_Filename = new JPanel();
-		panel_Filename.setAlignmentX(Component.LEFT_ALIGNMENT);
-		panel_NewDownload.add(panel_Filename);
-		panel_Filename.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
-		panel_Filename.setMinimumSize(dim_NewDownloadPanelsMin);
-		panel_Filename.setMaximumSize(dim_NewDownloadPanelsMax);
-		panel_Filename.setPreferredSize(dim_NewDownloadPanelsPref);
-
-		JLabel lbl_FileName = new JLabel("File Name:", JLabel.TRAILING);
-		panel_Filename.add(lbl_FileName);
-		lbl_FileName.setLabelFor(textField_fileName);
-
-		textField_fileName = new JTextField();
-		panel_Filename.add(textField_fileName);
-		textField_fileName.setColumns(20);
 
 		JPanel panel_OpenSourceRadioBtn = new JPanel();
 		panel_OpenSourceRadioBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -181,16 +145,12 @@ public class DownloadManagerFrame extends JFrame implements ActionListener {
 								"The file you are trying to download must be open source.");
 				return;
 			}
-			if (textField_URL.getText() == null
-					&& textField_fileName.getText() == null
-					|| textField_URL.getText().equals("")
-					&& textField_fileName.getText().equals("")) {
+			if (textField_URL.getText() == null || textField_URL.getText().equals("")) {
 				JOptionPane.showMessageDialog(this,
-						"Please complete both URL and Filename fields.");
+						"Please complete the URL field.");
 				return;
 			}
-			DownloadModule d1 = new DownloadModule(textField_URL.getText(),
-					textField_fileName.getText());
+			DownloadModule d1 = new DownloadModule(textField_URL.getText());
 			panel_DisplayDownload.add(d1);
 			panel_DisplayDownload.revalidate();
 			scrollPane.revalidate();
