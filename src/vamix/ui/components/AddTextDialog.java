@@ -1,4 +1,4 @@
-package vamix.ui.modules;
+package vamix.ui.components;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -32,7 +32,7 @@ import javax.swing.text.DocumentFilter;
 import javax.swing.text.PlainDocument;
 
 import vamix.function.DrawTextFunction;
-import vamix.function.StripAudioFunction;
+import vamix.function.ExtractAudioFunction;
 import vamix.misc.Helper;
 
 import javax.swing.JTextPane;
@@ -51,7 +51,8 @@ import javax.swing.SwingConstants;
 /**
  * Adds text to the start of the video,
  */
-public class AddTextDialog extends JDialog implements ActionListener, ChangeListener, ItemListener {
+public class AddTextDialog extends JDialog implements ActionListener,
+		ChangeListener, ItemListener {
 
 	private final JPanel contentPanel = new JPanel();
 
@@ -75,24 +76,25 @@ public class AddTextDialog extends JDialog implements ActionListener, ChangeList
 	private JDialog dialog_ColorChooser;
 	private JLabel lblTextToBeAdded;
 	private ImportDialog dialog_Import;
-	
-	public static final String[] fontSizes = new String[] {"6", "8", "10", "12", "14", "16", "18", "20", "24", "28", "32", "36", "40", "44", "48", "54", "60", "72", "90", "100"};
-	
-	
+
+	public static final String[] fontSizes = new String[] { "6", "8", "10",
+			"12", "14", "16", "18", "20", "24", "28", "32", "36", "40", "44",
+			"48", "54", "60", "72", "90", "100" };
+
 	private int fontSize = 48;
-	private File fontFile = new File("/usr/share/fonts/truetype/ttf-indic-fonts-core/gargi.ttf");
-	private Font font = new Font("Serif",Font.PLAIN, fontSize);
+	private File fontFile = new File(
+			"/usr/share/fonts/truetype/ttf-indic-fonts-core/gargi.ttf");
+	private Font font = new Font("Serif", Font.PLAIN, fontSize);
 	private Color selectedColor = Color.WHITE;
-	
+
 	private boolean finished = true;
-	
+
 	private DrawTextFunction drawText;
-	
+
 	private int durationFrames;
 	private int durationSeconds;
 	private int fps;
-	
-	
+
 	private String outputName = "drawTextTest";
 	private String outputDirectory = "";
 
@@ -109,37 +111,37 @@ public class AddTextDialog extends JDialog implements ActionListener, ChangeList
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
 		contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-		
+
 		lblTextToBeAdded = new JLabel("Text to be added");
 		lblTextToBeAdded.setHorizontalAlignment(SwingConstants.LEFT);
 		lblTextToBeAdded.setAlignmentX(Component.CENTER_ALIGNMENT);
 		contentPanel.add(lblTextToBeAdded);
-		
-		DocumentFilter limitedCharactersfilter = new LimitedCharactersDocumentFilter(150);
-		
+
+		DocumentFilter limitedCharactersfilter = new LimitedCharactersDocumentFilter(
+				150);
+
 		textArea = new JTextArea();
 		textArea.setFont(font);
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
 		textArea.setForeground(selectedColor);
 		textArea.setBackground(Color.LIGHT_GRAY);
-		((PlainDocument) textArea.getDocument()).setDocumentFilter(limitedCharactersfilter);
-		textArea.setMinimumSize(new Dimension(600,300));
-		textArea.setMaximumSize(new Dimension(2000,1000));
-		textArea.setPreferredSize(new Dimension(600,300));
-		
-		
-		
+		((PlainDocument) textArea.getDocument())
+				.setDocumentFilter(limitedCharactersfilter);
+		textArea.setMinimumSize(new Dimension(600, 300));
+		textArea.setMaximumSize(new Dimension(2000, 1000));
+		textArea.setPreferredSize(new Dimension(600, 300));
+
 		contentPanel.add(textArea);
-		
+
 		Dimension dim_PanelsMin = new Dimension(400, 35);
 		Dimension dim_PanelsMax = new Dimension(2000, 40);
 		Dimension dim_PanelsPref = new Dimension(400, 35);
-		
+
 		panel_FontOptions = new JPanel();
 		contentPanel.add(panel_FontOptions);
 		panel_FontOptions.setLayout(new GridLayout(0, 3, 0, 0));
-		
+
 		JPanel panel_SelectFont = new JPanel();
 		panel_FontOptions.add(panel_SelectFont);
 
@@ -147,44 +149,44 @@ public class AddTextDialog extends JDialog implements ActionListener, ChangeList
 		fontSelectText.setColumns(20);
 		fontSelectText.setEditable(false);
 		panel_SelectFont.add(fontSelectText);
-		
+
 		btn_FileChooser = new JButton("...");
 		btn_FileChooser.addActionListener(this);
 		panel_SelectFont.add(btn_FileChooser);
-		
+
 		font_select.setCurrentDirectory(new File("/usr/share/fonts/truetype/"));
 		font_select.setDialogTitle("Select a font file");
-		
+
 		panel_FontSize = new JPanel();
 		panel_FontOptions.add(panel_FontSize);
-		
+
 		lblFontSize = new JLabel("Font Size");
 		panel_FontSize.add(lblFontSize);
-		
+
 		comboBox_FontSize = new JComboBox();
 		panel_FontSize.add(comboBox_FontSize);
 		comboBox_FontSize.setModel(new DefaultComboBoxModel(fontSizes));
 		comboBox_FontSize.setSelectedIndex(14);
 		comboBox_FontSize.addItemListener(this);
-		
+
 		panel_FontColor = new JPanel();
 		panel_FontOptions.add(panel_FontColor);
-		
+
 		lblFontColor = new JLabel("Font Color");
 		panel_FontColor.add(lblFontColor);
-		
+
 		panel_ColorSample = new JPanel();
 		panel_ColorSample.setBackground(selectedColor);
 		panel_ColorSample.setBorder(new LineBorder(new Color(0, 0, 0)));
 		panel_FontColor.add(panel_ColorSample);
-		
+
 		btn_ColorChooser = new JButton("...");
 		btn_ColorChooser.addActionListener(this);
 		panel_FontColor.add(btn_ColorChooser);
-		
+
 		progressBar = new JProgressBar();
 		contentPanel.add(progressBar);
-		
+
 		Component verticalGlue = Box.createVerticalGlue();
 		contentPanel.add(verticalGlue);
 
@@ -204,26 +206,28 @@ public class AddTextDialog extends JDialog implements ActionListener, ChangeList
 		btn_CancelClose.setActionCommand("Close");
 		btn_CancelClose.addActionListener(this);
 		buttonPane.add(btn_CancelClose);
-		
+
 		// Color chooser dialog
-		
+
 		colorChooser = new JColorChooser();
 		colorChooser.getSelectionModel().addChangeListener(this);
-		
+
 		JButton btn_CloseColorChooser = new JButton("Choose Colour");
-		
+
 		dialog_ColorChooser = new JDialog();
 		dialog_ColorChooser.setTitle("Choose Font Color");
 		dialog_ColorChooser.getContentPane().setLayout(new BorderLayout());
-		dialog_ColorChooser.getContentPane().add(colorChooser,BorderLayout.CENTER);
-		dialog_ColorChooser.getContentPane().add(btn_CloseColorChooser,BorderLayout.SOUTH);
+		dialog_ColorChooser.getContentPane().add(colorChooser,
+				BorderLayout.CENTER);
+		dialog_ColorChooser.getContentPane().add(btn_CloseColorChooser,
+				BorderLayout.SOUTH);
 		btn_CloseColorChooser.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				dialog_ColorChooser.setVisible(false);
 			}
 		});
-		
+
 		dialog_ColorChooser.pack();
 		dialog_ColorChooser.setVisible(false);
 
@@ -233,7 +237,7 @@ public class AddTextDialog extends JDialog implements ActionListener, ChangeList
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
-		
+
 		if (e.getSource() == btn_AddText) {
 			String text = textArea.getText();
 
@@ -243,11 +247,13 @@ public class AddTextDialog extends JDialog implements ActionListener, ChangeList
 				return;
 			}
 			drawText = new DrawTextFunction(this);
-			int result = drawText.canDrawText( outputName,  outputDirectory,  text,  toHexString(selectedColor),  ""+fontSize,  fontFile.getAbsolutePath());
+			int result = drawText.canDrawText(outputName, outputDirectory,
+					text, toHexString(selectedColor), "" + fontSize,
+					fontFile.getAbsolutePath());
 			canDrawTextExitValue(result);
 		}
 
-		if (e.getSource() == btn_FileChooser) {			
+		if (e.getSource() == btn_FileChooser) {
 			int returnVal = font_select.showOpenDialog(AddTextDialog.this);
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
 				// check the selected file is a ttf (True type font) file
@@ -255,8 +261,10 @@ public class AddTextDialog extends JDialog implements ActionListener, ChangeList
 				if (selectedFont.getName().matches("(.*)\\.ttf")) {
 					try {
 						fontFile = font_select.getSelectedFile();
-						font = Font.createFont(Font.TRUETYPE_FONT, new FileInputStream(fontFile));
-						GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(font);
+						font = Font.createFont(Font.TRUETYPE_FONT,
+								new FileInputStream(fontFile));
+						GraphicsEnvironment.getLocalGraphicsEnvironment()
+								.registerFont(font);
 						font = font.deriveFont((float) fontSize);
 					} catch (FileNotFoundException e1) {
 						// TODO Auto-generated catch block
@@ -273,15 +281,15 @@ public class AddTextDialog extends JDialog implements ActionListener, ChangeList
 				textArea.setFont(font);
 				textArea.repaint();
 			}
-			
+
 		}
-		
-		if (e.getSource() == btn_ColorChooser) {	
+
+		if (e.getSource() == btn_ColorChooser) {
 			dialog_ColorChooser.setVisible(true);
 		}
-		
+
 		if (e.getSource() == btn_CancelClose) {
-			if(!finished) {
+			if (!finished) {
 				System.out.println("cancelAt()");
 				drawText.cancelDt();
 			} else {
@@ -289,28 +297,29 @@ public class AddTextDialog extends JDialog implements ActionListener, ChangeList
 			}
 		}
 	}
-	
+
 	@Override
-	//Code from the Oracle Tutorials site for updating the JFileChooser
+	// Code from the Oracle Tutorials site for updating the JFileChooser
 	public void stateChanged(ChangeEvent e) {
 		selectedColor = colorChooser.getColor();
-		
-	    panel_ColorSample.setBackground(selectedColor);
-	    panel_ColorSample.repaint();
-	    textArea.setForeground(selectedColor);
-	    textArea.repaint();
-		
+
+		panel_ColorSample.setBackground(selectedColor);
+		panel_ColorSample.repaint();
+		textArea.setForeground(selectedColor);
+		textArea.repaint();
+
 	}
-	
+
 	@Override
 	public void itemStateChanged(ItemEvent e) {
-		fontSize = Integer.parseInt(comboBox_FontSize.getSelectedItem().toString());
-		font = font.deriveFont((float)fontSize);
+		fontSize = Integer.parseInt(comboBox_FontSize.getSelectedItem()
+				.toString());
+		font = font.deriveFont((float) fontSize);
 		textArea.setFont(font);
 		textArea.repaint();
-		
+
 	}
-	
+
 	public void canDrawTextExitValue(int exitValue) {
 		switch (exitValue) {
 		case 0:
@@ -322,8 +331,9 @@ public class AddTextDialog extends JDialog implements ActionListener, ChangeList
 					" Please select a valid output directory.");
 			break;
 		case 4:
-			JOptionPane.showMessageDialog(this,
-					"Output file already exists.\n Please change the name of the output file.");
+			JOptionPane
+					.showMessageDialog(this,
+							"Output file already exists.\n Please change the name of the output file.");
 			break;
 		case 5:
 			JOptionPane.showMessageDialog(this,
@@ -373,51 +383,57 @@ public class AddTextDialog extends JDialog implements ActionListener, ChangeList
 		btn_CancelClose.setText("Close");
 
 	}
-	
+
 	/**
 	 * Updates the progress bar
+	 * 
 	 * @param i
 	 */
 	public void setProgress(int i) {
 		progressBar.setValue(i);
 	}
-	
+
 	/**
 	 * Sets the number of frames per second of the video file being stripped
+	 * 
 	 * @param seconds
 	 */
 	public void setFps(int fps) {
 		this.fps = fps;
 		setDurationFrames();
 	}
-	
+
 	/**
 	 * Sets the duration of the video file being stripped in seconds
+	 * 
 	 * @param seconds
 	 */
 	public void setDurationSeconds(int seconds) {
 		durationSeconds = seconds;
 		setDurationFrames();
 	}
-	
+
 	/**
-	 * Sets the duration of the video file being stripped in frames and then updates the progress bar if it can.
+	 * Sets the duration of the video file being stripped in frames and then
+	 * updates the progress bar if it can.
 	 */
 	private void setDurationFrames() {
-		if(durationSeconds > 0 && fps > 0) {
-			durationFrames = durationSeconds*fps;
+		if (durationSeconds > 0 && fps > 0) {
+			durationFrames = durationSeconds * fps;
 			progressBar.setMaximum(durationFrames);
 		}
 	}
 
-	
-	// Taken from http://www.javacreed.com/how-to-get-the-hex-value-from-color/ Tutorial
-	public final static String toHexString(Color colour) throws NullPointerException {
-		  String hexColour = Integer.toHexString(colour.getRGB() & 0xffffff);
-		  if (hexColour.length() < 6) {
-		    hexColour = "000000".substring(0, 6 - hexColour.length()) + hexColour;
-		  }
-		  return "0x" + hexColour;
+	// Taken from http://www.javacreed.com/how-to-get-the-hex-value-from-color/
+	// Tutorial
+	public final static String toHexString(Color colour)
+			throws NullPointerException {
+		String hexColour = Integer.toHexString(colour.getRGB() & 0xffffff);
+		if (hexColour.length() < 6) {
+			hexColour = "000000".substring(0, 6 - hexColour.length())
+					+ hexColour;
 		}
-	
+		return "0x" + hexColour;
+	}
+
 }

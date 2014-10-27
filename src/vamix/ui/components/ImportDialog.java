@@ -1,6 +1,5 @@
-package vamix.ui.modules;
+package vamix.ui.components;
 
-import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
 
 import javax.swing.JDialog;
@@ -14,17 +13,13 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 
@@ -35,14 +30,14 @@ public class ImportDialog extends JDialog implements ActionListener {
 	JTextField textField_FileChooser;
 	JButton button_FileChooser;
 	JButton btn_Import;
-	
-	List<ActionListener> confirmListeners = new LinkedList();
+
+	List<ActionListener> confirmListeners = new LinkedList<ActionListener>();
 
 	private final JFileChooser fc = new JFileChooser();
 
 	public ImportDialog() {
 		setTitle("Import File");
-		
+
 		JPanel contentPanel = new JPanel();
 		setContentPane(contentPanel);
 
@@ -87,6 +82,7 @@ public class ImportDialog extends JDialog implements ActionListener {
 		case 0:
 			JOptionPane.showMessageDialog(null,
 					"Video file imported successfully.");
+			this.setVisible(false);
 			updateConfirmListeners();
 			break;
 		case 1:
@@ -105,7 +101,7 @@ public class ImportDialog extends JDialog implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		
+
 		if (e.getSource() == button_FileChooser) {
 			int returnVal = fc.showOpenDialog(null);
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -126,13 +122,14 @@ public class ImportDialog extends JDialog implements ActionListener {
 		}
 
 	}
-	
+
 	public void addConfirmListener(ActionListener listener) {
 		confirmListeners.add(listener);
 	}
-	
-	public void updateConfirmListeners () {
-		ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "confirm");
+
+	public void updateConfirmListeners() {
+		ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
+				"confirm");
 		for (ActionListener al : confirmListeners) {
 			al.actionPerformed(e);
 		}

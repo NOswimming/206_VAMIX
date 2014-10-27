@@ -1,7 +1,8 @@
-package vamix.ui.modules;
+package vamix.ui.components;
 
 import vamix.component.ComponentManager;
 import vamix.component.components.Video;
+import vamix.ui.GUI;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -13,12 +14,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JSlider;
+import javax.swing.JToggleButton;
 import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -27,8 +30,6 @@ import uk.co.caprica.vlcj.binding.internal.libvlc_media_t;
 import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
 import uk.co.caprica.vlcj.player.MediaPlayer;
 import uk.co.caprica.vlcj.player.MediaPlayerEventListener;
-import uk.co.caprica.vlcj.player.MediaPlayerFactory;
-import uk.co.caprica.vlcj.player.embedded.FullScreenStrategy;
 
 public class Player extends JPanel implements ActionListener, ChangeListener,
 		MouseListener, MediaPlayerEventListener {
@@ -41,16 +42,38 @@ public class Player extends JPanel implements ActionListener, ChangeListener,
 
 	private JPanel panel_Video;
 
+	private JProgressBar progressBar;
+
 	private JButton btn_Add;
 	private JButton btn_Stop;
 	private JButton btn_PlayPause;
 	private JButton btn_Rewind;
 	private JButton btn_FastForward;
-	private JProgressBar progressBar;
 
 	private JLabel lbl_Volume;
 	private JSlider slider_Volume;
 	private JButton btn_Mute;
+	// private JButton btn_FullScreen; TODO: remove
+
+	public static final Color BUTTON_COLOR = new Color(100, 100, 100, 255);
+
+	// Icons for all the buttons
+	private ImageIcon playIcon = new ImageIcon(
+			GUI.class.getResource("/vamix/ui/icons/PlayButtonIcon.png"));
+	private ImageIcon pauseIcon = new ImageIcon(
+			GUI.class.getResource("/vamix/ui/icons/PauseButtonIcon.png"));
+	private ImageIcon stopIcon = new ImageIcon(
+			GUI.class.getResource("/vamix/ui/icons/StopButtonIcon.png"));
+	private ImageIcon fastForwardIcon = new ImageIcon(
+			GUI.class.getResource("/vamix/ui/icons/FastForwardButtonIcon.png"));
+	private ImageIcon rewindIcon = new ImageIcon(
+			GUI.class.getResource("/vamix/ui/icons/RewindButtonIcon.png"));
+	private ImageIcon mutedIcon = new ImageIcon(
+			GUI.class.getResource("/vamix/ui/icons/MutedButtonIcon.png"));
+	private ImageIcon unmutedIcon = new ImageIcon(
+			GUI.class.getResource("/vamix/ui/icons/UnmutedButtonIcon.png"));
+	private ImageIcon addIcon = new ImageIcon(
+			GUI.class.getResource("/vamix/ui/icons/AddButtonIcon.png"));
 
 	private ImportDialog dialog_Import;
 
@@ -64,7 +87,7 @@ public class Player extends JPanel implements ActionListener, ChangeListener,
 	private Timer timerRewind;
 	int timerDelayRewind = 100; // milliseconds
 	ActionListener taskPerformerRewind = new ActionListener() {
-		public void actionPerformed(ActionEvent evt) {
+		public void actionPerformed(ActionEvent e) {
 			if (playing == true) {
 				mediaPlayerComponent.getMediaPlayer().skip(skipRate);
 			}
@@ -75,13 +98,14 @@ public class Player extends JPanel implements ActionListener, ChangeListener,
 	long longToIntDivisor = 100;
 	int timerDelayProgressBar = 300; // milliseconds
 	ActionListener taskPerformerUpdateBar = new ActionListener() {
-		public void actionPerformed(ActionEvent evt) {
+		public void actionPerformed(ActionEvent e) {
 			if (playing == true) {
 				if (progressBar.getMaximum() < 1) {
 					Player.this.setProgressBarMaximum(mediaPlayerComponent
 							.getMediaPlayer().getLength());
 				}
-				Player.this.updateProgressBar(mediaPlayerComponent.getMediaPlayer().getTime());
+				Player.this.updateProgressBar(mediaPlayerComponent
+						.getMediaPlayer().getTime());
 			}
 
 		}
@@ -102,14 +126,13 @@ public class Player extends JPanel implements ActionListener, ChangeListener,
 		panel_Video.setLayout(new BorderLayout());
 		panel_Video.setBackground(Color.DARK_GRAY);
 		add(panel_Video, BorderLayout.CENTER);
-		
+
 		// Media Player
 		mediaPlayerComponent = new EmbeddedMediaPlayerComponent();
 		mediaPlayerComponent.getMediaPlayer().addMediaPlayerEventListener(this);
-		mediaPlayerComponent.addMouseListener(this);
 		panel_Video.add(mediaPlayerComponent, BorderLayout.CENTER);
-		
-		//Video Cotrols
+
+		// Video Controls
 		JPanel panel_VideoControls = new JPanel();
 		add(panel_VideoControls, BorderLayout.SOUTH);
 		panel_VideoControls.setLayout(new BorderLayout(10, 0));
@@ -137,40 +160,60 @@ public class Player extends JPanel implements ActionListener, ChangeListener,
 
 		setVolume(100);
 
-		btn_Mute = new JButton("Mute");
-		btn_Mute.setFont(new Font("Tahoma", Font.PLAIN, 20));
+		btn_Mute = new JButton();
+		btn_Mute.setIcon(unmutedIcon);
+		btn_Mute.setBackground(BUTTON_COLOR);
+		btn_Mute.setPreferredSize(new Dimension(30, 30));
 		btn_Mute.addActionListener(this);
 		btn_Mute.setEnabled(false);
 		panel_VideoControlsEast.add(btn_Mute);
 
+		/*
+		 * // TODO: remove btn_FullScreen = new JButton("FS");
+		 * btn_FullScreen.setFont(new Font("Tahoma", Font.PLAIN, 20));
+		 * btn_FullScreen.addActionListener(this);
+		 * btn_FullScreen.setEnabled(false);
+		 * panel_VideoControlsEast.add(btn_FullScreen);
+		 */
+
 		JPanel panel_VideoControlsWest = new JPanel();
 		panel_VideoControls.add(panel_VideoControlsWest, BorderLayout.WEST);
 
-		btn_Add = new JButton("+");
-		btn_Add.setFont(new Font("Tahoma", Font.PLAIN, 20));
+		btn_Add = new JButton();
+		btn_Add.setIcon(addIcon);
+		btn_Add.setBackground(BUTTON_COLOR);
+		btn_Add.setPreferredSize(new Dimension(30, 30));
 		btn_Add.addActionListener(this);
 		panel_VideoControlsWest.add(btn_Add);
 
-		btn_Stop = new JButton("Stop");
-		btn_Stop.setFont(new Font("Tahoma", Font.PLAIN, 20));
+		btn_Stop = new JButton();
+		btn_Stop.setIcon(stopIcon);
+		btn_Stop.setBackground(BUTTON_COLOR);
+		btn_Stop.setPreferredSize(new Dimension(30, 30));
 		btn_Stop.addActionListener(this);
 		btn_Stop.setEnabled(false);
 		panel_VideoControlsWest.add(btn_Stop);
 
-		btn_Rewind = new JButton("RW");
-		btn_Rewind.setFont(new Font("Tahoma", Font.PLAIN, 20));
+		btn_Rewind = new JButton();
+		btn_Rewind.setIcon(rewindIcon);
+		btn_Rewind.setBackground(BUTTON_COLOR);
+		btn_Rewind.setPreferredSize(new Dimension(30, 30));
 		btn_Rewind.addActionListener(this);
 		btn_Rewind.setEnabled(false);
 		panel_VideoControlsWest.add(btn_Rewind);
 
-		btn_PlayPause = new JButton("Play");
-		btn_PlayPause.setFont(new Font("Tahoma", Font.PLAIN, 20));
+		btn_PlayPause = new JButton();
+		btn_PlayPause.setIcon(playIcon);
+		btn_PlayPause.setBackground(BUTTON_COLOR);
+		btn_PlayPause.setPreferredSize(new Dimension(30, 30));
 		btn_PlayPause.addActionListener(this);
 		btn_PlayPause.setEnabled(false);
 		panel_VideoControlsWest.add(btn_PlayPause);
 
-		btn_FastForward = new JButton("FF");
-		btn_FastForward.setFont(new Font("Tahoma", Font.PLAIN, 20));
+		btn_FastForward = new JButton();
+		btn_FastForward.setIcon(fastForwardIcon);
+		btn_FastForward.setBackground(BUTTON_COLOR);
+		btn_FastForward.setPreferredSize(new Dimension(30, 30));
 		btn_FastForward.addActionListener(this);
 		btn_FastForward.setEnabled(false);
 		panel_VideoControlsWest.add(btn_FastForward);
@@ -187,11 +230,11 @@ public class Player extends JPanel implements ActionListener, ChangeListener,
 		timerProgressBar = new Timer(timerDelayProgressBar,
 				taskPerformerUpdateBar);
 		timerProgressBar.start();
-		
+
 		dialog_Import = new ImportDialog();
 
 	}
-	
+
 	// ActionListener Events
 
 	@Override
@@ -212,23 +255,23 @@ public class Player extends JPanel implements ActionListener, ChangeListener,
 			} else {
 				String absolutePath = video.getFile().getAbsolutePath();
 				mediaPlayerComponent.getMediaPlayer().startMedia(absolutePath);
-				setProgressBarMaximum(mediaPlayerComponent.getMediaPlayer().getLength());
+				setProgressBarMaximum(mediaPlayerComponent.getMediaPlayer()
+						.getLength());
 				playing(true);
 				enableButtons(true);
-				System.out.println(absolutePath); //TODO: remove
 			}
 		}
-		
+
 		if (e.getSource() == dialog_Import) {
 			ComponentManager cm = ComponentManager.getInstance();
 			Video video = cm.getVideo();
 
 			String absolutePath = video.getFile().getAbsolutePath();
 			mediaPlayerComponent.getMediaPlayer().startMedia(absolutePath);
-			setProgressBarMaximum(mediaPlayerComponent.getMediaPlayer().getLength());
+			setProgressBarMaximum(mediaPlayerComponent.getMediaPlayer()
+					.getLength());
 			playing(true);
 			enableButtons(true);
-			System.out.println(absolutePath); //TODO: remove
 		}
 
 		if (e.getSource() == btn_Stop) {
@@ -280,12 +323,23 @@ public class Player extends JPanel implements ActionListener, ChangeListener,
 
 		if (e.getSource() == btn_Mute) {
 			if (mediaPlayerComponent != null) {
+				if (mediaPlayerComponent.getMediaPlayer().isMute())
+					btn_Mute.setIcon(unmutedIcon);
+				else
+					btn_Mute.setIcon(mutedIcon);
 				mediaPlayerComponent.getMediaPlayer().mute();
 			}
 		}
 
+		/*
+		 * // TODO: remove if (e.getSource() == btn_FullScreen) { if
+		 * (mediaPlayerComponent != null) {
+		 * mediaPlayerComponent.getMediaPlayer().toggleFullScreen();
+		 * System.out.println("fullscreen"); } }
+		 */
+
 	}
-	
+
 	// ChangeListener Event
 
 	@Override
@@ -296,46 +350,40 @@ public class Player extends JPanel implements ActionListener, ChangeListener,
 		}
 
 	}
-	
-	public void playing (boolean isPlaying) {
+
+	public void playing(boolean isPlaying) {
 		if (isPlaying) {
+			btn_PlayPause.setIcon(pauseIcon);
 			playing = true;
-			btn_PlayPause.setText("Pause");
 		} else {
+			btn_PlayPause.setIcon(playIcon);
 			playing = false;
-			btn_PlayPause.setText("Play");
 		}
 	}
-	
-	public void enableButtons (boolean enable) {
-		if (enable) {
-			lbl_Volume.setEnabled(true);
-			slider_Volume.setEnabled(true);
-			btn_Mute.setEnabled(true);
-			btn_Stop.setEnabled(true);
-			btn_Rewind.setEnabled(true);
-			btn_PlayPause.setEnabled(true);
-			btn_FastForward.setEnabled(true);
-		} else {
-			lbl_Volume.setEnabled(false);
-			slider_Volume.setEnabled(false);
-			btn_Mute.setEnabled(false);
-			btn_Stop.setEnabled(false);
-			btn_Rewind.setEnabled(false);
-			btn_PlayPause.setEnabled(false);
-			btn_FastForward.setEnabled(false);
-		}
+
+	public void enableButtons(boolean enable) {
+		lbl_Volume.setEnabled(enable);
+		slider_Volume.setEnabled(enable);
+		btn_Mute.setEnabled(enable);
+		// btn_FullScreen.setEnabled(enable); // TODO: remove
+		btn_Stop.setEnabled(enable);
+		btn_Rewind.setEnabled(enable);
+		btn_PlayPause.setEnabled(enable);
+		btn_FastForward.setEnabled(enable);
+
 	}
+
 	public void setProgressBarMaximum(long milliseconds) {
 		progressBar.setMaximum((int) (milliseconds / longToIntDivisor));
 	}
-	
+
 	public void updateProgressBar(long milliseconds) {
 		progressBar.setValue((int) (milliseconds / longToIntDivisor));
 		long second = (milliseconds / 1000) % 60;
 		long minute = (milliseconds / (1000 * 60)) % 60;
 		long hour = (milliseconds / (1000 * 60 * 60)) % 24;
-		String formattedTime = String.format("%01d:%02d:%02d", hour, minute, second);
+		String formattedTime = String.format("%01d:%02d:%02d", hour, minute,
+				second);
 		progressBar.setString(formattedTime);
 	}
 
@@ -347,56 +395,53 @@ public class Player extends JPanel implements ActionListener, ChangeListener,
 	}
 
 	// MouseListener Events
-	
+
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		
+
 		if (e.getSource() == progressBar) {
 			int x = e.getX();
 			double width = e.getComponent().getBounds().getWidth();
 			long value = (long) (progressBar.getMaximum() * x / width);
 			updateProgressBar(value);
-			mediaPlayerComponent.getMediaPlayer().setTime(value * longToIntDivisor);
-			System.out.print("x: " + x + "width: " + width + "value: " + value
-					+ "value*longToIntDivisor: " + (value * longToIntDivisor)
-					+ "\n"); //TODO: remove print
-		}
-		
-		if (e.getSource() == mediaPlayerComponent) {
-			System.out.println("fullscreen");
-			if (e.getClickCount() >= 2) {
-				mediaPlayerComponent.getMediaPlayer().toggleFullScreen();
-				
-			}
+			mediaPlayerComponent.getMediaPlayer().setTime(
+					value * longToIntDivisor);
 		}
 	}
 
 	@Override
-	public void mouseEntered(MouseEvent e) {}
+	public void mouseEntered(MouseEvent e) {
+	}
 
 	@Override
-	public void mouseExited(MouseEvent e) {}
+	public void mouseExited(MouseEvent e) {
+	}
 
 	@Override
-	public void mousePressed(MouseEvent e) {}
+	public void mousePressed(MouseEvent e) {
+	}
 
 	@Override
-	public void mouseReleased(MouseEvent e) {}
-	
-	
+	public void mouseReleased(MouseEvent e) {
+	}
+
 	// MediaPlayerEventListener Events
 
 	@Override
-	public void backward(MediaPlayer arg0) {}
+	public void backward(MediaPlayer arg0) {
+	}
 
 	@Override
-	public void buffering(MediaPlayer arg0, float arg1) {}
+	public void buffering(MediaPlayer arg0, float arg1) {
+	}
 
 	@Override
-	public void endOfSubItems(MediaPlayer arg0) {}
+	public void endOfSubItems(MediaPlayer arg0) {
+	}
 
 	@Override
-	public void error(MediaPlayer arg0) {}
+	public void error(MediaPlayer arg0) {
+	}
 
 	@Override
 	public void finished(MediaPlayer arg0) {
@@ -410,72 +455,95 @@ public class Player extends JPanel implements ActionListener, ChangeListener,
 	}
 
 	@Override
-	public void forward(MediaPlayer arg0) {}
+	public void forward(MediaPlayer arg0) {
+	}
 
 	@Override
-	public void lengthChanged(MediaPlayer arg0, long arg1) {}
+	public void lengthChanged(MediaPlayer arg0, long arg1) {
+	}
 
 	@Override
-	public void mediaChanged(MediaPlayer arg0, libvlc_media_t arg1, String arg2) {}
+	public void mediaChanged(MediaPlayer arg0, libvlc_media_t arg1, String arg2) {
+	}
 
 	@Override
-	public void mediaDurationChanged(MediaPlayer arg0, long arg1) {}
+	public void mediaDurationChanged(MediaPlayer arg0, long arg1) {
+	}
 
 	@Override
-	public void mediaFreed(MediaPlayer arg0) {}
+	public void mediaFreed(MediaPlayer arg0) {
+	}
 
 	@Override
-	public void mediaMetaChanged(MediaPlayer arg0, int arg1) {}
+	public void mediaMetaChanged(MediaPlayer arg0, int arg1) {
+	}
 
 	@Override
-	public void mediaParsedChanged(MediaPlayer arg0, int arg1) {}
+	public void mediaParsedChanged(MediaPlayer arg0, int arg1) {
+	}
 
 	@Override
-	public void mediaStateChanged(MediaPlayer arg0, int arg1) {}
+	public void mediaStateChanged(MediaPlayer arg0, int arg1) {
+	}
 
 	@Override
-	public void mediaSubItemAdded(MediaPlayer arg0, libvlc_media_t arg1) {}
+	public void mediaSubItemAdded(MediaPlayer arg0, libvlc_media_t arg1) {
+	}
 
 	@Override
-	public void newMedia(MediaPlayer arg0) {}
+	public void newMedia(MediaPlayer arg0) {
+	}
 
 	@Override
-	public void opening(MediaPlayer arg0) {}
+	public void opening(MediaPlayer arg0) {
+	}
 
 	@Override
-	public void pausableChanged(MediaPlayer arg0, int arg1) {}
+	public void pausableChanged(MediaPlayer arg0, int arg1) {
+	}
 
 	@Override
-	public void paused(MediaPlayer arg0) {}
+	public void paused(MediaPlayer arg0) {
+	}
 
 	@Override
-	public void playing(MediaPlayer arg0) {}
+	public void playing(MediaPlayer arg0) {
+	}
 
 	@Override
-	public void positionChanged(MediaPlayer arg0, float arg1) {}
+	public void positionChanged(MediaPlayer arg0, float arg1) {
+	}
 
 	@Override
-	public void seekableChanged(MediaPlayer arg0, int arg1) {}
+	public void seekableChanged(MediaPlayer arg0, int arg1) {
+	}
 
 	@Override
-	public void snapshotTaken(MediaPlayer arg0, String arg1) {}
+	public void snapshotTaken(MediaPlayer arg0, String arg1) {
+	}
 
 	@Override
-	public void stopped(MediaPlayer arg0) {}
+	public void stopped(MediaPlayer arg0) {
+	}
 
 	@Override
-	public void subItemFinished(MediaPlayer arg0, int arg1) {}
+	public void subItemFinished(MediaPlayer arg0, int arg1) {
+	}
 
 	@Override
-	public void subItemPlayed(MediaPlayer arg0, int arg1) {}
+	public void subItemPlayed(MediaPlayer arg0, int arg1) {
+	}
 
 	@Override
-	public void timeChanged(MediaPlayer arg0, long arg1) {}
+	public void timeChanged(MediaPlayer arg0, long arg1) {
+	}
 
 	@Override
-	public void titleChanged(MediaPlayer arg0, int arg1) {}
+	public void titleChanged(MediaPlayer arg0, int arg1) {
+	}
 
 	@Override
-	public void videoOutput(MediaPlayer arg0, int arg1) {}
+	public void videoOutput(MediaPlayer arg0, int arg1) {
+	}
 
 }

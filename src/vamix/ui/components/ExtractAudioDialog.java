@@ -1,4 +1,4 @@
-package vamix.ui.modules;
+package vamix.ui.components;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -17,13 +17,14 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 import vamix.function.DownloadFunction;
-import vamix.function.StripAudioFunction;
+import vamix.function.ExtractAudioFunction;
+import vamix.function.worker.Worker;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class StripAudioDialog extends JDialog implements ActionListener {
+public class ExtractAudioDialog extends JDialog implements ActionListener {
 
 	private final JPanel contentPanel = new JPanel();
 	private JTextField textField_Filename;
@@ -37,13 +38,13 @@ public class StripAudioDialog extends JDialog implements ActionListener {
 
 	private ImportDialog dialog_Import;
 
-	private StripAudioFunction stripAudio;
-	
+	private ExtractAudioFunction stripAudio;
+
 	/**
 	 * If the strip audio is finished and waiting for closure
 	 */
 	private boolean finished = true;
-	
+
 	private int fps = -1;
 	private int durationSeconds = -1;
 	private int durationFrames = 100;
@@ -51,7 +52,7 @@ public class StripAudioDialog extends JDialog implements ActionListener {
 	/**
 	 * Create the dialog.
 	 */
-	public StripAudioDialog() {
+	public ExtractAudioDialog() {
 		setTitle("Strip Audio");
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -102,14 +103,14 @@ public class StripAudioDialog extends JDialog implements ActionListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				int returnVal = fc.showOpenDialog(StripAudioDialog.this);
+				int returnVal = fc.showOpenDialog(ExtractAudioDialog.this);
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					textField_Directory.setText(fc.getSelectedFile()
 							.getAbsolutePath());
 				}
 			}
 		});
-		
+
 		progressBar = new JProgressBar();
 		contentPanel.add(progressBar);
 
@@ -150,13 +151,13 @@ public class StripAudioDialog extends JDialog implements ActionListener {
 						"Please complete the filename and select a directory.");
 				return;
 			}
-			stripAudio = new StripAudioFunction(this);
+			stripAudio = new ExtractAudioFunction(this);
 			int result = stripAudio.canStrip(name, directory, true);
 			canStripExitValue(result);
 		}
-		
+
 		if (e.getSource() == btn_CancelClose) {
-			if(!finished) {
+			if (!finished) {
 				System.out.println("cancelSa()");
 				stripAudio.cancelSa();
 			} else {
@@ -177,8 +178,9 @@ public class StripAudioDialog extends JDialog implements ActionListener {
 					" Please select a valid output directory.");
 			break;
 		case 4:
-			JOptionPane.showMessageDialog(this,
-					"Output file already exists.\n Please change the name of the output file.");
+			JOptionPane
+					.showMessageDialog(this,
+							"Output file already exists.\n Please change the name of the output file.");
 			break;
 		case 5:
 			JOptionPane.showMessageDialog(this,
@@ -216,7 +218,7 @@ public class StripAudioDialog extends JDialog implements ActionListener {
 			// The Strip Audio process has finished correctly
 			JOptionPane.showMessageDialog(this, " Stripping audio complete!");
 			break;
-		case -1:
+		case Worker.CANCELED_EXIT_VALUE:
 			// Cancelled
 			JOptionPane.showMessageDialog(this,
 					" Stripping audio has been cancelled.");
@@ -231,36 +233,40 @@ public class StripAudioDialog extends JDialog implements ActionListener {
 
 	/**
 	 * Updates the progress bar
+	 * 
 	 * @param i
 	 */
 	public void setProgress(int i) {
 		progressBar.setValue(i);
 	}
-	
+
 	/**
 	 * Sets the number of frames per second of the video file being stripped
+	 * 
 	 * @param seconds
 	 */
 	public void setFps(int fps) {
 		this.fps = fps;
 		setDurationFrames();
 	}
-	
+
 	/**
 	 * Sets the duration of the video file being stripped in seconds
+	 * 
 	 * @param seconds
 	 */
 	public void setDurationSeconds(int seconds) {
 		durationSeconds = seconds;
 		setDurationFrames();
 	}
-	
+
 	/**
-	 * Sets the duration of the video file being stripped in frames and then updates the progress bar if it can.
+	 * Sets the duration of the video file being stripped in frames and then
+	 * updates the progress bar if it can.
 	 */
 	private void setDurationFrames() {
-		if(durationSeconds > 0 && fps > 0) {
-			durationFrames = durationSeconds*fps;
+		if (durationSeconds > 0 && fps > 0) {
+			durationFrames = durationSeconds * fps;
 			progressBar.setMaximum(durationFrames);
 		}
 	}

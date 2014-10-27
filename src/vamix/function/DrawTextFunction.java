@@ -16,21 +16,21 @@ import vamix.component.ComponentManager;
 import vamix.component.components.Audio;
 import vamix.component.components.Video;
 import vamix.misc.Helper;
-import vamix.ui.modules.AddTextDialog;
+import vamix.ui.components.AddTextDialog;
 
 /**
  * Uses avconv drawtext to draw text on a video
  */
-public class DrawTextFunction {	
+public class DrawTextFunction {
 	/**
 	 * The various variables required to draw the text
 	 */
 	private Video input;
 	private Video output;
-	
+
 	private static final String BEGINING = "lt";
 	private static final String END = "gt";
-	
+
 	private String beginingOrEnd = BEGINING;
 	private String duration = "6";
 	private String fontFilePath;
@@ -50,7 +50,7 @@ public class DrawTextFunction {
 	public DrawTextFunction(AddTextDialog addTextDialog) {
 		dialog = addTextDialog;
 	}
-	
+
 	/**
 	 * Cancel the avconv drawtext process
 	 */
@@ -66,13 +66,14 @@ public class DrawTextFunction {
 	 * required fields have been appropriately filled and if so, starts the
 	 * swing worker
 	 */
-	public int canDrawText(String outputName, String outputDirectory, String text, String fontColor, String fontSize, String fontFilePath) {
-		
+	public int canDrawText(String outputName, String outputDirectory,
+			String text, String fontColor, String fontSize, String fontFilePath) {
+
 		this.fontFilePath = fontFilePath;
 		this.text = text;
 		this.fontColor = fontColor;
 		this.fontSize = fontSize;
-		
+
 		if (worker != null) {
 			return 9;// Need to wait until previous task is complete
 		}
@@ -106,12 +107,10 @@ public class DrawTextFunction {
 
 		// Check the input file is valid
 		/*
-		if (!Helper.checkType(input.getFile()).equals("audio/mpeg")) {
-		// TODO: Update type to be movie type
-			return 7;
-		}
-		*/
-		
+		 * if (!Helper.checkType(input.getFile()).equals("audio/mpeg")) { //
+		 * TODO: Update type to be movie type return 7; }
+		 */
+
 		// All appears to be in order
 
 		worker = new Worker();
@@ -141,12 +140,20 @@ public class DrawTextFunction {
 
 		@Override
 		public Void doInBackground() {
-			// avconv -i <input file> -vf drawtext="draw='<lt/gt>(t,<duration>)': fontfile='<text file>': text='<text>': x=100: y=50: fontsize=<font size>: fontcolor=<font color>@<opacity>" <output file name><output file extension>
+			// avconv -i <input file> -vf
+			// drawtext="draw='<lt/gt>(t,<duration>)': fontfile='<text file>': text='<text>': x=100: y=50: fontsize=<font size>: fontcolor=<font color>@<opacity>"
+			// <output file name><output file extension>
 			String inputFile = input.getPath();
-			String command = "/usr/bin/avconv"+" "+"-i "+inputFile+" "+ "-vf" +" "+ "drawtext=\" draw='"+beginingOrEnd+"(t,"+duration+")': fontfile='"+fontFilePath+"': text='"+text+"': x="+textPositionX+": y="+textPositionY+": fontsize="+fontSize+": fontcolor="+fontColor+"@"+opacity+"\""+" "+"-y"+" "+outputFileName+outputFileExtension;
+			String command = "/usr/bin/avconv" + " " + "-i " + inputFile + " "
+					+ "-vf" + " " + "drawtext=\" draw='" + beginingOrEnd
+					+ "(t," + duration + ")': fontfile='" + fontFilePath
+					+ "': text='" + text + "': x=" + textPositionX + ": y="
+					+ textPositionY + ": fontsize=" + fontSize + ": fontcolor="
+					+ fontColor + "@" + opacity + "\"" + " " + "-y" + " "
+					+ outputFileName + outputFileExtension;
 			ProcessBuilder builder = new ProcessBuilder(command);
 			System.out.println(command);
-			
+
 			builder.redirectErrorStream(true);
 			try {
 				process = builder.start();
@@ -154,48 +161,56 @@ public class DrawTextFunction {
 				e1.printStackTrace();
 			}
 			InputStream stdout = process.getInputStream();
-			BufferedReader stdoutBuffered = new BufferedReader(new InputStreamReader(stdout));
+			BufferedReader stdoutBuffered = new BufferedReader(
+					new InputStreamReader(stdout));
 			String line = null;
 			try {
-				while (!isCancelled() && (line = stdoutBuffered.readLine()) != null) {
+				while (!isCancelled()
+						&& (line = stdoutBuffered.readLine()) != null) {
 					publish(line);
 				}
-			} catch (IOException e) {e.printStackTrace();}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			try {
 				process.waitFor();
-			} catch (InterruptedException e) {}
+			} catch (InterruptedException e) {
+			}
 			return null;
 		}
-		
+
 		@Override
 		protected void process(List<String> list) {
 			for (String s : list) {
-				System.out.println(s); //TODO: remove this line
-				
-				//Gets the duration of the video file to calculate the total number of frames
-				Pattern three = Pattern.compile("Duration:\\s(\\d{2}):(\\d{2}):(\\d{2})\\.\\d{2}");
+				System.out.println(s); // TODO: remove this line
+
+				// Gets the duration of the video file to calculate the total
+				// number of frames
+				Pattern three = Pattern
+						.compile("Duration:\\s(\\d{2}):(\\d{2}):(\\d{2})\\.\\d{2}");
 				Matcher matcher = three.matcher(s);
-				if(matcher.find()) {
+				if (matcher.find()) {
 					int hours = Integer.parseInt(matcher.group(1));
 					int mins = Integer.parseInt(matcher.group(2));
 					int secs = Integer.parseInt(matcher.group(3));
 					// Calculate the total number of seconds
-					int totalSecs = hours*360 + mins*60 + secs;
+					int totalSecs = hours * 360 + mins * 60 + secs;
 					dialog.setDurationSeconds(totalSecs);
 				}
-				
-				//Gets the number of frames per second to calculate the total number of frames
+
+				// Gets the number of frames per second to calculate the total
+				// number of frames
 				Pattern two = Pattern.compile("Stream:.+\\s(\\d+)\\sfps");
 				matcher = two.matcher(s);
-				if(matcher.find()) {
+				if (matcher.find()) {
 					int fps = Integer.parseInt(matcher.group(1));
 					dialog.setFps(fps);
 				}
-				
-				//Gets the frame that is being extracted
+
+				// Gets the frame that is being extracted
 				Pattern one = Pattern.compile("frame=\\s*(\\d+)\\s");
 				matcher = one.matcher(s);
-				if(matcher.find()) {
+				if (matcher.find()) {
 					int frame = Integer.parseInt(matcher.group(1));
 					dialog.setProgress(frame);
 				}

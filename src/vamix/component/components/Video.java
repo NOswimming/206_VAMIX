@@ -20,7 +20,7 @@ public class Video {
 	 * Represents the location of the file being edited
 	 */
 	private String path;
-	
+
 	public String getPath() {
 		return path;
 	}
@@ -47,8 +47,8 @@ public class Video {
 	 */
 	private int frameCount;
 
-	//TODO: Add more required video file information
-	//if you have to get it once, may as well just save
-	//it in case you need to get it again
+	// TODO: Add more required video file information
+	// if you have to get it once, may as well just save
+	// it in case you need to get it again
 
 }

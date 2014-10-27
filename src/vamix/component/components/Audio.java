@@ -6,7 +6,7 @@ import java.io.File;
  * Represents an audio file object held by the ComponentManager
  */
 public class Audio {
-	
+
 	public Audio(File f) {
 		setFile(f);
 		setPath(f.getAbsolutePath());
@@ -15,7 +15,7 @@ public class Audio {
 	/**********
 	 * FIELDS *
 	 **********/
-	
+
 	/**
 	 * Represents the Unique ID of the Audio object
 	 */
@@ -33,7 +33,7 @@ public class Audio {
 	 * Represents the location of the file being edited
 	 */
 	private String path;
-	
+
 	public String getPath() {
 		return path;
 	}

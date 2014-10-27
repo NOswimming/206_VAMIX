@@ -12,106 +12,82 @@ import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 
+import vamix.function.worker.DownloadWorker;
+import vamix.function.worker.Worker;
 import vamix.misc.Helper;
-import vamix.ui.modules.DownloadModule;
+import vamix.ui.components.DownloadModule;
 
 /**
- * Handles downloading files, largely taken from Trob525's
- * assignment two code.
+ * Handles downloading files, largely taken from Trob525's assignment two code.
  */
-public class DownloadFunction {
+public class DownloadFunction implements IFunction {
 
-	private SwingWorker<Void, String> currentWorker = new Worker();
-	private final String CMD = "wget";
-	private String arg = "-c";
+	private SwingWorker<Void, String> worker;
+	private final String command = "wget";
+	private String arguments;
 	private String url;
 	private String fileName;
+	private String filePath;
+	private String downloadDirectory;
 	private DownloadModule dM;
 
-	public DownloadFunction(String url, String filename, DownloadModule dM) {
+	public DownloadFunction(String url, String downloadDirectory,
+			DownloadModule dM) {
+		
 		this.url = url;
 		this.dM = dM;
-		fileName = filename;
-		if(new File(filename).exists()) {
-			Object[] options = {"Yes, complete the download.", "No, cancel the download."};
-			int n = JOptionPane.showOptionDialog(dM,
-					"The file specified is already partially downloaded, would you like to complete?",
-					"Congratulations",
-					JOptionPane.YES_NO_OPTION,
-					JOptionPane.QUESTION_MESSAGE,
-					null,
-					options,
-					options[1]);
-		}
-		currentWorker.execute();
-	}
+		this.downloadDirectory = downloadDirectory;
 
-	/**
-	 * Called when a file finishing downloading
-	 */
-	public void doDone(int exitValue) {
-		dM.done(exitValue);
-		currentWorker = null;
-		System.gc();
+		// Pull the filename from the URL.
+		Pattern pattern = Pattern.compile(".*/([^/]*+)");
+		Matcher matcher = pattern.matcher(url);
+		if (matcher.find()) {
+			fileName = matcher.group(1);
+			matcher.group(1);
+		}
+		filePath = downloadDirectory + fileName;
+
+		if (new File(this.filePath).exists()) {
+			Object[] options = { "Yes, complete the download.",
+					"No, cancel the download." };
+			int n = JOptionPane
+					.showOptionDialog(
+							dM,
+							"The file specified is already partially downloaded, would you like to complete?",
+							"Congratulations", JOptionPane.YES_NO_OPTION,
+							JOptionPane.QUESTION_MESSAGE, null, options,
+							options[1]);
+		}
+
+		worker = new DownloadWorker(this, this.url, this.downloadDirectory);
+		worker.execute();
 	}
 
 	/**
 	 * Cancel the download
 	 */
 	public void cancelDl() {
-		if (currentWorker != null)
-			currentWorker.cancel(true);
+		if (worker != null)
+			worker.cancel(true);
 	}
 
 	/**
-	 * The worker thread for the download portion of Vamix, handles the actual
-	 * downloading of the file so the gui doesn't lock up.
-	 *
+	 * Called when a file is finished downloading
 	 */
-	private class Worker extends SwingWorker<Void, String> {
-		private Process process;
-		private int exitValue;
-		
-		@Override
-		public Void doInBackground() {
-			ProcessBuilder builder = new ProcessBuilder(CMD, arg, "--progress=bar:force", "-O", fileName, url);
-			builder.redirectErrorStream(true);
-			try {
-				process = builder.start();
-			} catch (IOException e1) {e1.printStackTrace();}
-			InputStream stdout = process.getInputStream();
-			BufferedReader stdoutBuffered = new BufferedReader(new InputStreamReader(stdout));
-			String line = null;
-			try {
-				while (!isCancelled() && (line = stdoutBuffered.readLine()) != null) {
-					publish(line);
-				}
-			} catch (IOException e) {e.printStackTrace();}
-			try {
-				process.waitFor();
-			} catch (InterruptedException e) {}
-			return null;
-		}
-
-		@Override
-		protected void process(List<String> list) {
-			for (String s : list) {
-				Pattern one = Pattern.compile("(\\d{1,3})%");
-				Matcher matcher = one.matcher(s);
-				if(matcher.find()) {
-					dM.setProgress(Integer.parseInt(matcher.group(1)));
-				}
-			}
-		}
-
-		@Override
-		public void done() {
-			if (isCancelled()) {
-				process.destroy();
-				return;
-			}
-			exitValue = process.exitValue();
-			doDone(exitValue);
-		}
+	public void doDone(int exitValue) {
+		dM.done(exitValue);
+		worker = null;
+		System.gc();
 	}
+
+	@Override
+	public void doProcess(String intermediateValue) {
+		Pattern one = Pattern.compile("(\\d{1,3})%");
+		Matcher matcher = one.matcher(intermediateValue);
+		if (matcher.find()) {
+			dM.setProgress(Integer.parseInt(matcher.group(1)));
+		}
+
+	}
+
 }
